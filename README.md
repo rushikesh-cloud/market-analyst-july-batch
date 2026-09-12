@@ -56,6 +56,27 @@ versioned migrations. For Docker, supply `DATABASE_URL` for PostgreSQL or mount 
 writable volume at `/app/data` to persist SQLite across container replacement.
 The starter has no authentication; production access control is still pending.
 
+## Azure resource utilities
+
+The server uses `app.resources.get_resource_clients()` as the single access layer for
+Azure OpenAI, Document Intelligence, and PostgreSQL. It resolves API keys and the
+database password from Key Vault with `DefaultAzureCredential`; no application source
+or environment file stores those values.
+
+For local development, sign in with `az login` and run `npm run dev`. The command loads
+the ignored `.env`, then `DefaultAzureCredential` uses the Azure CLI identity to read
+the Key Vault secrets. A deployed workload must use a managed identity with Key Vault
+secret `get` permission.
+
+```python
+from app.resources import get_resource_clients
+
+resources = get_resource_clients()
+luna = resources.openai()
+document_intelligence = resources.document_intelligence()
+database_engine = resources.database_engine()
+```
+
 Validation:
 
 ```bash

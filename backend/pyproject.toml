@@ -4,7 +4,11 @@ version = "0.1.0"
 description = "FastAPI service for the Market Analyst platform"
 requires-python = ">=3.13"
 dependencies = [
+    "azure-ai-documentintelligence>=1.0,<2",
+    "azure-identity>=1.19,<2",
+    "azure-keyvault-secrets>=4.9,<5",
     "fastapi==0.115.6",
+    "openai>=1.58,<2",
     "psycopg[binary]>=3.2,<4",
     "sqlalchemy>=2.0,<3",
     "uvicorn[standard]==0.34.0",

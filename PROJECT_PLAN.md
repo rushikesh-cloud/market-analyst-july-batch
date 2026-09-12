@@ -34,4 +34,36 @@ ACI
 
 Github (use gh cli)
 
-create new repo 
+create new repo
+
+UI / UX
+
+Companies - where we can define the list of companies, Company Name, ticker, (ticker for yahoo finance)
+
+- add companies
+- table to show the list of companies configured,
+- edit and delete option at a table level
+
+Documents
+
+- Documents at a compnay level and also years specified these would be a annual reports of a company
+- user can upload a new document by selecting compnay name and year for the same
+- this would trigger a ingestion inside the vector db
+- - azure document intelligence parsing with output of markdown
+- - chunking at a header level, tables chunked separately, overlap with each previous chunk of 50 tokens including tables chunks, at additinoal metadata would be type of chunk (table, para), header sequence
+- When user opens a document we should be able to see the the pipeline and status of the same, fronend should poll the database for status, multiple tables, one tab for status, one tab with split screen of makrdown at left and chunks visible in right
+
+Stock Analysis Interface
+
+- start a new job by selecting the company from the dropdown and it will trigger the supervisor agent
+- list of jobs run
+- job will be running the supervisor agent, and would show the results for finance, technical and news agents also show the ratings
+
+AI Chat Agent
+Right side screen with collapsible chatbot where users can ask questions
+
+Authentication
+Signup / Signin
+
+
+Merge chunks where smaller once can be combined to a total250 chunks

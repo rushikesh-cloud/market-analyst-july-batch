@@ -23,6 +23,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     delete,
+    or_,
     select,
 )
 from sqlalchemy.exc import IntegrityError
@@ -35,7 +36,7 @@ from app.companies import Base, Company, engine
 MAX_PDF_BYTES = 50 * 1024 * 1024
 EMBEDDING_DIMENSIONS = int(os.environ.get("RAG_VECTOR_DIMENSIONS", "1536"))
 PIPELINE_STAGES = ("queued", "parse", "chunk", "embed", "index", "complete")
-CHUNKING_VERSION = "header-v1"
+CHUNKING_VERSION = "page-header-v2"
 TERMINAL_STATUSES = {"complete", "failed"}
 workspace_root = Path(
     os.environ.get("MARKET_ANALYST_WORKSPACE_ROOT", Path(__file__).resolve().parents[2])
@@ -104,6 +105,7 @@ class DocumentChunk(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     document_id: Mapped[str] = mapped_column(ForeignKey("documents.id", ondelete="CASCADE"), index=True)
     sequence: Mapped[int] = mapped_column(Integer)
+    page_number: Mapped[int] = mapped_column(Integer, default=1, index=True)
     chunk_type: Mapped[str] = mapped_column(String(20))
     heading_path: Mapped[list[str]] = mapped_column(JSON)
     content: Mapped[str] = mapped_column(Text)
@@ -155,6 +157,7 @@ class ChunkOutput(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: str
     sequence: int
+    page_number: int
     chunk_type: str
     heading_path: list[str]
     content: str
@@ -171,6 +174,8 @@ class ChunkPage(BaseModel):
 
 class ContentOutput(BaseModel):
     markdown: str
+    page: int
+    page_count: int
 
 
 router = APIRouter(prefix="/api/documents", tags=["documents"])
@@ -210,6 +215,34 @@ def _new_run(session: Session, document: Document, attempt: int) -> IngestionRun
             )
         )
     return run
+
+
+def enqueue_stale_documents() -> int:
+    """Requeue parsed documents when chunk metadata requires an upgrade."""
+    queued = 0
+    with Session(engine) as session:
+        items = session.scalars(
+            select(Document).where(
+                Document.markdown.is_not(None),
+                or_(
+                    Document.chunking_version.is_(None),
+                    Document.chunking_version != CHUNKING_VERSION,
+                ),
+                Document.status.not_in(("queued", "parse", "chunk", "embed", "index")),
+            )
+        ).all()
+        for item in items:
+            latest = session.scalar(
+                select(IngestionRun.attempt)
+                .where(IngestionRun.document_id == item.id)
+                .order_by(IngestionRun.attempt.desc())
+            ) or 0
+            item.status = "queued"
+            item.updated_at = utcnow()
+            _new_run(session, item, latest + 1)
+            queued += 1
+        session.commit()
+    return queued
 
 
 @router.post("", response_model=DocumentOutput, status_code=202)
@@ -310,13 +343,23 @@ def get_status(document_id: str):
         )
 
 
+def split_markdown_pages(markdown: str) -> list[str]:
+    return [
+        page.strip()
+        for page in re.split(r"\s*<!--\s*PageBreak\s*-->\s*", markdown)
+    ]
+
+
 @router.get("/{document_id}/content", response_model=ContentOutput)
-def get_content(document_id: str):
+def get_content(document_id: str, page: int = Query(1, ge=1)):
     with Session(engine) as session:
         item = _document(session, document_id)
         if item.markdown is None:
             raise HTTPException(409, "Document content is not available yet.")
-        return ContentOutput(markdown=item.markdown)
+        pages = split_markdown_pages(item.markdown)
+        if page > len(pages):
+            raise HTTPException(404, "Document page not found.")
+        return ContentOutput(markdown=pages[page - 1], page=page, page_count=len(pages))
 
 
 @router.get("/{document_id}/chunks", response_model=ChunkPage)
@@ -324,11 +367,15 @@ def get_chunks(
     document_id: str,
     offset: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=500),
+    page: int | None = Query(None, ge=1),
 ):
     with Session(engine) as session:
         item = _document(session, document_id)
+        statement = select(DocumentChunk).where(DocumentChunk.document_id == item.id)
+        if page is not None:
+            statement = statement.where(DocumentChunk.page_number == page)
         all_items = session.scalars(
-            select(DocumentChunk).where(DocumentChunk.document_id == item.id)
+            statement
             .options(defer(DocumentChunk.embedding))
             .order_by(DocumentChunk.sequence)
         ).all()
@@ -379,6 +426,7 @@ def delete_document(document_id: str):
 @dataclass(frozen=True)
 class ChunkDraft:
     sequence: int
+    page_number: int
     chunk_type: Literal["para", "table"]
     heading_path: list[str]
     content: str
@@ -448,19 +496,20 @@ def chunk_markdown(markdown: str, max_tokens: int = 2000, overlap_tokens: int = 
     if max_tokens <= overlap_tokens:
         raise ValueError("max_tokens must be greater than overlap_tokens")
     headings: list[str] = []
-    blocks: list[tuple[str, list[str], str]] = []
+    blocks: list[tuple[str, list[str], str, int]] = []
     paragraph: list[str] = []
     table: list[str] = []
     html_table = False
+    page_number = 1
 
     def flush_paragraph():
         if paragraph:
-            blocks.append(("para", headings.copy(), "\n".join(paragraph).strip()))
+            blocks.append(("para", headings.copy(), "\n".join(paragraph).strip(), page_number))
             paragraph.clear()
 
     def flush_table():
         if table:
-            blocks.append(("table", headings.copy(), "\n".join(table).strip()))
+            blocks.append(("table", headings.copy(), "\n".join(table).strip(), page_number))
             table.clear()
 
     for line in markdown.splitlines():
@@ -468,7 +517,11 @@ def chunk_markdown(markdown: str, max_tokens: int = 2000, overlap_tokens: int = 
         stripped = line.strip()
         starts_html_table = bool(re.match(r"<table(?:\s|>)", stripped, re.IGNORECASE))
         is_pipe_table = line.lstrip().startswith("|") and line.rstrip().endswith("|")
-        if html_table or starts_html_table:
+        if re.fullmatch(r"<!--\s*PageBreak\s*-->", stripped, re.IGNORECASE):
+            flush_paragraph(); flush_table()
+            html_table = False
+            page_number += 1
+        elif html_table or starts_html_table:
             if not html_table:
                 flush_paragraph()
                 html_table = True
@@ -493,7 +546,7 @@ def chunk_markdown(markdown: str, max_tokens: int = 2000, overlap_tokens: int = 
 
     drafts: list[ChunkDraft] = []
     previous_original = ""
-    for chunk_type, path, block in blocks:
+    for chunk_type, path, block, block_page in blocks:
         overlap = _decode(_tokens(previous_original)[-overlap_tokens:]) if previous_original else ""
         prefix = " > ".join(path)
         # Reserve the full overlap budget for every continuation; later pieces
@@ -505,7 +558,8 @@ def chunk_markdown(markdown: str, max_tokens: int = 2000, overlap_tokens: int = 
             part_overlap = _decode(_tokens(previous_original)[-overlap_tokens:]) if previous_original else ""
             combined = "\n".join(value for value in (prefix, part_overlap, part) if value)
             drafts.append(ChunkDraft(
-                sequence=len(drafts), chunk_type=chunk_type, heading_path=path.copy(),
+                sequence=len(drafts), page_number=block_page,
+                chunk_type=chunk_type, heading_path=path.copy(),
                 content=part, overlap_text=part_overlap, token_count=len(_tokens(combined)),
             ))
             previous_original = part

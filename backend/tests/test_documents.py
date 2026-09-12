@@ -281,6 +281,19 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(status["status"], "failed")
         self.assertEqual(status["stages"][1]["status"], "failed")
 
+    def test_stale_parsed_document_is_requeued_for_page_metadata(self):
+        with Session(self.engine) as session:
+            document = session.get(documents.Document, self.document["id"])
+            document.markdown = "# Parsed"
+            document.status = "complete"
+            document.chunking_version = "header-v1"
+            session.commit()
+
+        self.assertEqual(documents.enqueue_stale_documents(), 1)
+        status = self.client.get(f"/api/documents/{self.document['id']}/status").json()
+        self.assertEqual(status["status"], "queued")
+        self.assertEqual(status["attempt"], 2)
+
 
 if __name__ == "__main__":
     unittest.main()

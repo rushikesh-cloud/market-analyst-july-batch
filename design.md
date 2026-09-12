@@ -76,10 +76,14 @@ through the API; never use local browser storage as the system of record.
 - Status uses compact text badges and an ordered vertical pipeline. State is
   conveyed by text and icon as well as color. Failed runs retain their error and
   offer one clear Retry action.
-- Document details use Status and Content tabs. Content is a two-column working
-  view with extracted Markdown and ordered chunk cards; below 760px the panes
-  stack and scroll independently. Overlap context is visually separated from
-  each chunk's primary text.
+- Document details fill the available workspace without outer page margins.
+  Content becomes available as soon as parsing completes, even while later
+  ingestion stages continue or fail.
+- Content is a two-column, page-synchronized working view. The left pane renders
+  one Markdown page with previous/next controls and a direct page-number field at
+  the bottom. The right pane shows only chunks assigned to that page, including
+  chunk ID, sequence, page, type, token count, heading path, overlap, and content.
+  Below 760px the panes stack and scroll independently.
 - Upload uses the standard focused dialog. Company, fiscal year ending, and one
   PDF up to 50 MB are required. Deletion names the report and explains that all
   derived ingestion data is removed.

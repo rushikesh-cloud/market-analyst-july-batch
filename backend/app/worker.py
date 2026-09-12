@@ -160,6 +160,7 @@ def process_run(run_id: str, owner: str) -> None:
                 chunks = [
                     DocumentChunk(
                         id=str(uuid4()), document_id=document.id, sequence=draft.sequence,
+                        page_number=draft.page_number,
                         chunk_type=draft.chunk_type, heading_path=draft.heading_path,
                         content=draft.content, overlap_text=draft.overlap_text,
                         token_count=draft.token_count,

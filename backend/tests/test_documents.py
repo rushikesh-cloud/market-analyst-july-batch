@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 
 from app import companies, documents, worker
 from app.main import app
@@ -93,6 +94,39 @@ class DocumentApiTests(unittest.TestCase):
             self.client.post(f"/api/documents/{document_id}/retry").status_code, 409
         )
 
+    def test_content_and_chunks_are_filtered_by_page_after_parse(self):
+        document = self.upload().json()
+        document_id = document["id"]
+        with Session(self.engine) as session:
+            stored = session.get(documents.Document, document_id)
+            stored.markdown = "# First\n\nPage one.\n\n<!-- PageBreak -->\n\n# Second\n\nPage two."
+            session.add_all([
+                documents.DocumentChunk(
+                    id="chunk-1", document_id=document_id, sequence=0,
+                    chunk_type="para", heading_path=["First"], content="Page one.",
+                    overlap_text="", token_count=2, page_number=1,
+                ),
+                documents.DocumentChunk(
+                    id="chunk-2", document_id=document_id, sequence=1,
+                    chunk_type="para", heading_path=["Second"], content="Page two.",
+                    overlap_text="Page one.", token_count=4, page_number=2,
+                ),
+            ])
+            session.commit()
+
+        content = self.client.get(f"/api/documents/{document_id}/content?page=2")
+        self.assertEqual(content.status_code, 200)
+        self.assertEqual(content.json(), {
+            "markdown": "# Second\n\nPage two.", "page": 2, "page_count": 2
+        })
+        page = self.client.get(f"/api/documents/{document_id}/chunks?page=2").json()
+        self.assertEqual(page["total"], 1)
+        self.assertEqual(page["items"][0]["page_number"], 2)
+        self.assertEqual(
+            self.client.get(f"/api/documents/{document_id}/content?page=3").status_code,
+            404,
+        )
+
 
 class ChunkingTests(unittest.TestCase):
     def test_heading_tables_order_and_non_recursive_overlap(self):
@@ -146,6 +180,23 @@ Closing paragraph.
         self.assertEqual([chunk.chunk_type for chunk in chunks], ["para", "table", "para"])
         self.assertIn("First paragraph.\n\nSecond paragraph.", chunks[0].content)
         self.assertTrue(chunks[1].content.startswith("<table>"))
+
+    def test_page_breaks_assign_chunks_and_preserve_heading_context(self):
+        markdown = """# Results
+
+Page one text.
+
+<!-- PageBreak -->
+
+Page two text.
+"""
+        chunks = documents.chunk_markdown(markdown)
+        self.assertEqual([chunk.page_number for chunk in chunks], [1, 2])
+        self.assertEqual(chunks[1].heading_path, ["Results"])
+        self.assertEqual(
+            documents.split_markdown_pages(markdown),
+            ["# Results\n\nPage one text.", "Page two text."],
+        )
 
 
 class WorkerTests(unittest.TestCase):

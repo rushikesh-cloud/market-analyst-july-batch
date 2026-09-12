@@ -14,7 +14,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 COPY --from=ghcr.io/astral-sh/uv:0.11.33 /uv /uvx /bin/
 COPY backend/pyproject.toml backend/uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project \
-    && useradd --create-home --uid 10001 appuser
+    && useradd --create-home --uid 10001 appuser \
+    && mkdir /app/data && chown appuser:appuser /app/data
 COPY backend/app ./app
 COPY --from=frontend-build /frontend/dist ./static
 USER appuser

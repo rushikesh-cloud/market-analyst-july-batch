@@ -1,10 +1,22 @@
 from pathlib import Path
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-app = FastAPI(title="Market Analyst API", version="0.1.0")
+from app.companies import Base, engine, router
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    Base.metadata.create_all(engine)
+    yield
+    engine.dispose()
+
+
+app = FastAPI(title="Market Analyst API", version="0.1.0", lifespan=lifespan)
+app.include_router(router)
 
 app.add_middleware(
     CORSMiddleware,

@@ -42,9 +42,11 @@ planned destinations within the shared navigation.
 
 Follow [design.md](design.md) for all UI work.
 
-The API uses SQLAlchemy. Local development defaults to a persistent SQLite file at
-`backend/data/market-analyst.db` (ignored by Git). Set `DATABASE_URL` in the server's
-process environment to use PostgreSQL, for example:
+The API uses SQLAlchemy through the shared Azure resource utilities. The configured
+`.env` enables `USE_AZURE_DATABASE=true`: Companies uses
+`get_resource_clients().database_engine()` to connect to PostgreSQL with the password
+from Key Vault. Both `npm run dev` and `npm run dev:backend` load this configuration.
+An explicit `DATABASE_URL` overrides Azure resource settings, for example:
 
 ```bash
 export DATABASE_URL='postgresql+psycopg://user:password@localhost:5432/market_analyst'
@@ -52,8 +54,10 @@ npm run dev
 ```
 
 The initial companies table is created at startup. Future schema changes require
-versioned migrations. For Docker, supply `DATABASE_URL` for PostgreSQL or mount a
-writable volume at `/app/data` to persist SQLite across container replacement.
+versioned migrations. If neither `DATABASE_URL` nor Azure database mode is configured,
+the local fallback is `backend/data/market-analyst.db` (SQLite, ignored by Git).
+Azure connection failures never fall back to SQLite. For Docker, supply the Azure
+resource environment configuration and managed identity, or `DATABASE_URL`.
 The starter has no authentication; production access control is still pending.
 
 ## Azure resource utilities

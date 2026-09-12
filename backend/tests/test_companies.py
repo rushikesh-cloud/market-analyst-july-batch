@@ -59,3 +59,28 @@ class CompanyTests(unittest.TestCase):
         for ticker in ['BRK-B', '^GSPC', 'EURUSD=X', '7203.T']:
             with self.subTest(ticker=ticker):
                 self.assertEqual(self.add(ticker, ticker).status_code, 201)
+
+
+class DatabaseSelectionTests(unittest.TestCase):
+    def test_azure_mode_uses_shared_engine(self):
+        with patch.dict('os.environ', {'USE_AZURE_DATABASE': 'true'}, clear=True), patch(
+            'app.resources.get_resource_clients'
+        ) as clients:
+            self.assertIs(companies.make_engine(), clients.return_value.database_engine.return_value)
+            clients.return_value.database_engine.assert_called_once_with()
+
+    def test_azure_failure_does_not_fall_back_to_sqlite(self):
+        with patch.dict('os.environ', {'USE_AZURE_DATABASE': 'true'}, clear=True), patch(
+            'app.resources.get_resource_clients', side_effect=RuntimeError('Unavailable')
+        ):
+            with self.assertRaisesRegex(RuntimeError, 'Unavailable'):
+                companies.make_engine()
+
+    def test_explicit_url_overrides_azure_mode(self):
+        with patch.dict('os.environ', {
+            'USE_AZURE_DATABASE': 'true', 'DATABASE_URL': 'sqlite:///:memory:'
+        }, clear=True), patch('app.resources.get_resource_clients') as clients:
+            engine = companies.make_engine()
+            self.assertEqual(engine.dialect.name, 'sqlite')
+            clients.assert_not_called()
+            engine.dispose()

@@ -28,7 +28,7 @@ def make_engine():
     if not url and os.environ.get("USE_AZURE_DATABASE", "").lower() == "true":
         from app.resources import get_resource_clients
 
-        url = get_resource_clients().database_url()
+        return get_resource_clients().database_engine()
     if not url:
         data_directory = Path(__file__).resolve().parent.parent / "data"
         data_directory.mkdir(exist_ok=True)

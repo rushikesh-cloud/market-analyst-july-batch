@@ -17,6 +17,7 @@ RUN uv sync --frozen --no-dev --no-install-project \
     && useradd --create-home --uid 10001 appuser \
     && mkdir /app/data && chown appuser:appuser /app/data
 COPY backend/app ./app
+COPY backend/migrations ./migrations
 COPY --from=frontend-build /frontend/dist ./static
 USER appuser
 EXPOSE 8000

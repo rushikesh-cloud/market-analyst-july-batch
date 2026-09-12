@@ -21,6 +21,8 @@ backend/.venv/
 .idea/
 .vscode/
 coverage/
+backend/.coverage
 backend/data/
+documents/
 output/playwright/
 .playwright-cli/

@@ -6,6 +6,8 @@
     "dev": "set -a && . ./.env && set +a && concurrently --kill-others-on-fail --names frontend,backend --prefix-colors cyan,green \"npm --prefix frontend run dev\" \"uv --directory backend run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000\"",
     "dev:frontend": "npm --prefix frontend run dev",
     "dev:backend": "uv --directory backend run --env-file ../.env uvicorn app.main:app --reload --host 0.0.0.0 --port 8000",
+    "worker": "uv --directory backend run --env-file ../.env python -m app.worker",
+    "migrate": "uv --directory backend run --env-file ../.env python -m app.migrate",
     "install:all": "npm install && npm --prefix frontend install && uv --directory backend sync",
     "build": "npm --prefix frontend run build"
   },

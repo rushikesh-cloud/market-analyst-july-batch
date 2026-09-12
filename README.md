@@ -37,8 +37,9 @@ create and deploy its Azure Container Instance as a separate activity.
 The Companies page supports adding, searching, editing, and deleting companies.
 Company names and Yahoo Finance tickers are required; symbols are normalized to
 uppercase and must be unique. Ticker format is checked locally, without calling
-Yahoo Finance to verify that a symbol exists. Documents and Agentic Analysis are
-planned destinations within the shared navigation.
+Yahoo Finance to verify that a symbol exists. Documents supports one PDF annual
+report per company and fiscal year ending, with persisted ingestion progress and
+Markdown/chunk inspection. Agentic Analysis remains a planned destination.
 
 Follow [design.md](design.md) for all UI work.
 
@@ -87,3 +88,33 @@ Validation:
 npm run build
 uv --directory backend run python -m unittest discover -s tests -v
 ```
+
+## Document ingestion
+
+Document ingestion requires PostgreSQL with the `vector` extension and the Azure
+resource variables described above. `RAG_VECTOR_DIMENSIONS` must match the output
+size of `AZURE_OPENAI_EMBEDDING_DEPLOYMENT` (1536 by default). Apply migrations,
+start the web app, and run the durable worker as separate processes:
+
+```bash
+npm run migrate
+npm run dev
+npm run worker
+```
+
+Uploaded PDFs are written beneath `documents/<document-id>/source.pdf`; only that
+relative path is stored in PostgreSQL. The folder is git-ignored. Set
+`MARKET_ANALYST_WORKSPACE_ROOT` when the backend's working tree is elsewhere. A
+container must mount persistent storage at `/app/documents` and set
+`MARKET_ANALYST_WORKSPACE_ROOT=/app`, for example:
+
+```bash
+docker run --rm -p 8000:8000 \
+  -e MARKET_ANALYST_WORKSPACE_ROOT=/app \
+  -v market-analyst-documents:/app/documents \
+  --env-file .env market-analyst
+```
+
+Run a second container from the same image and volume with the command
+`/app/.venv/bin/python -m app.worker`. Workers claim PostgreSQL jobs using row
+locks and renewable leases, so queued work survives restarts.

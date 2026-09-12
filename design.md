@@ -68,6 +68,22 @@ symbols. Symbols are unique, with exchange suffixes supported (RELIANCE.NS,
 validation does not imply verification against Yahoo Finance. Persist changes
 through the API; never use local browser storage as the system of record.
 
+## Documents contract
+
+- Documents follows the same heading, panel, table, filter, dialog, empty-state,
+  and notification patterns as Companies. Each row shows company, fiscal year,
+  filename, ingestion status, upload time, and actions.
+- Status uses compact text badges and an ordered vertical pipeline. State is
+  conveyed by text and icon as well as color. Failed runs retain their error and
+  offer one clear Retry action.
+- Document details use Status and Content tabs. Content is a two-column working
+  view with extracted Markdown and ordered chunk cards; below 760px the panes
+  stack and scroll independently. Overlap context is visually separated from
+  each chunk's primary text.
+- Upload uses the standard focused dialog. Company, fiscal year ending, and one
+  PDF up to 50 MB are required. Deletion names the report and explains that all
+  derived ingestion data is removed.
+
 ## Accessibility and behavior
 
 Semantic navigation, headings, tables, forms, and buttons. Visible keyboard focus,

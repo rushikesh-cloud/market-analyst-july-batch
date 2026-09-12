@@ -100,6 +100,12 @@ def delete_company(company_id: str):
         company = session.get(Company, company_id)
         if company is None:
             raise HTTPException(404, "Company not found.")
+        from app.documents import Document
+
+        if session.scalar(select(Document.id).where(Document.company_id == company_id)):
+            raise HTTPException(
+                409, "Delete this company's documents before deleting the company."
+            )
         session.delete(company)
         session.commit()
         return Response(status_code=204)

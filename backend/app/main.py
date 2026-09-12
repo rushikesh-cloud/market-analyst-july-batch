@@ -6,17 +6,24 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.companies import Base, engine, router
+from app.documents import router as documents_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    Base.metadata.create_all(engine)
+    if engine.dialect.name == "postgresql":
+        from app.migrate import migrate
+
+        migrate()
+    else:
+        Base.metadata.create_all(engine)
     yield
     engine.dispose()
 
 
 app = FastAPI(title="Market Analyst API", version="0.1.0", lifespan=lifespan)
 app.include_router(router)
+app.include_router(documents_router)
 
 app.add_middleware(
     CORSMiddleware,

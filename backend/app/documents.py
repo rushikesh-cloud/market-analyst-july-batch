@@ -20,7 +20,6 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     delete,
-    or_,
     select,
 )
 from sqlalchemy.exc import IntegrityError
@@ -212,34 +211,6 @@ def _new_run(session: Session, document: Document, attempt: int) -> IngestionRun
             )
         )
     return run
-
-
-def enqueue_stale_documents() -> int:
-    """Requeue parsed documents when chunk metadata requires an upgrade."""
-    queued = 0
-    with Session(engine) as session:
-        items = session.scalars(
-            select(Document).where(
-                Document.markdown.is_not(None),
-                or_(
-                    Document.chunking_version.is_(None),
-                    Document.chunking_version != CHUNKING_VERSION,
-                ),
-                Document.status.not_in(("queued", "parse", "chunk", "embed", "index")),
-            )
-        ).all()
-        for item in items:
-            latest = session.scalar(
-                select(IngestionRun.attempt)
-                .where(IngestionRun.document_id == item.id)
-                .order_by(IngestionRun.attempt.desc())
-            ) or 0
-            item.status = "queued"
-            item.updated_at = utcnow()
-            _new_run(session, item, latest + 1)
-            queued += 1
-        session.commit()
-    return queued
 
 
 @router.post("", response_model=DocumentOutput, status_code=202)

@@ -13,10 +13,8 @@ from app.documents import router as documents_router
 async def lifespan(app: FastAPI):
     if engine.dialect.name == "postgresql":
         from app.migrate import migrate
-        from app.documents import enqueue_stale_documents
 
         migrate()
-        enqueue_stale_documents()
     else:
         Base.metadata.create_all(engine)
     yield

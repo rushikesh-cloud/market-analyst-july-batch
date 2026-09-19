@@ -126,6 +126,11 @@ npm run dev
 npm run worker
 ```
 
+Uploading a report queues only that report. API startup applies schema migrations
+without requeuing existing reports, including reports using older chunking versions.
+Existing content and embeddings are retained; failed ingestion can be retried
+explicitly from the document's detail page.
+
 Uploaded PDFs are written beneath `documents/<document-id>/source.pdf`; only that
 relative path is stored in PostgreSQL. The folder is git-ignored. Set
 `MARKET_ANALYST_WORKSPACE_ROOT` when the backend's working tree is elsewhere. A

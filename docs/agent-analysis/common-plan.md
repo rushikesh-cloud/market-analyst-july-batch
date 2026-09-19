@@ -269,3 +269,17 @@ Read [execution and validation conventions](README.md) and [the master plan](../
 - Next: C02/C03/C04/C05 are independent and are now assigned concurrently.
 - Shared guidance used: `/home/azureuser/projects/knowledgebase/01-Active-Standards/retrieval-and-precedence.md`;
   implementation follows the current project task pack.
+
+## C02 handoff
+
+- Implementation commit: this commit.
+- `analysis/scoring.py` exposes fixed server-owned dimensions, normalized weighted
+  averages, confidence assessment, and explicit mandatory evidence gates.
+- C02-01–C02-07 map to seven methods in `tests/test_analysis_scoring.py`: all pass,
+  no skips. Coverage: 107 statements and 46 branches, 100%.
+- Command: `uv --directory backend run coverage run --branch
+  --data-file=/tmp/analysis-c02.coverage --source=app.analysis.scoring
+  -m unittest discover -s tests -p test_analysis_scoring.py`.
+- Decimal half-up rounding occurs once; eligibility uses unrounded coverage.
+  News retains responsibility for its event denominator. No live checks apply.
+- Next: C08 consumes this arithmetic after its remaining dependencies pass.

@@ -13,7 +13,7 @@ from langchain_core.outputs import ChatGeneration, ChatResult
 from openai import AzureOpenAI, AuthenticationError, BadRequestError, RateLimitError, InternalServerError
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
-from app.analysis.contracts import AgentType, AnalysisError, ErrorCode
+from app.analysis.contracts import AgentType, AnalysisError, ErrorCode, ModelConfiguration
 from app.analysis.provider_budget import LocalCallBudget
 from app.analysis.provider_config import AnalysisProviderSettings
 from app.analysis.provider_runtime import invoke_structured_agent
@@ -224,6 +224,15 @@ class AnalysisProviderTests(unittest.TestCase):
         with self.assertRaises(AnalysisError) as caught:
             clients.analysis_chat_model('technical')
         self.assertNotIn('sentinel', str(caught.exception))
+
+    def test_queued_model_configuration_overrides_changed_environment(self):
+        clients = AzureResourceClients(self.settings(ANALYSIS_TECHNICAL_DEPLOYMENT='new-deployment'), Mock())
+        clients.secrets.get.return_value = 'test'
+        frozen = ModelConfiguration(deployment='queued-deployment', api_version='2025-01-01-preview')
+        model = clients.analysis_chat_model('technical', configuration=frozen)
+        self.assertEqual(model.deployment_name, 'queued-deployment')
+        self.assertEqual(model.openai_api_version, '2025-01-01-preview')
+        self.assertEqual(clients.analysis_model_configuration('technical').deployment, 'new-deployment')
 
 
 if __name__ == '__main__':

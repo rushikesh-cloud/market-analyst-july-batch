@@ -346,3 +346,24 @@ Read [execution and validation conventions](README.md) and [the master plan](../
 - No Tavily secret setting exists; unrelated startup/model configuration remains
   usable. Real news-provider readiness belongs to its downstream track.
 - C08 implements persistent `CallBudget.remaining_seconds/reserve_model_call`.
+
+## C06 handoff
+
+- Implementation commit: this commit.
+- `EvidenceStore` registers immutable, deduplicated run-local snapshots;
+  `ArtifactStore` writes atomically under run/attempt UUID paths and publishes
+  metadata only while holding the current lease. Read-only instances serve bytes
+  by registered IDs with descriptor-based symlink protection and hash checking.
+- C06-01–C06-06 map to named tests in `test_analysis_storage.py`; first real
+  PostgreSQL run: eight passed, no failures/skips, including full snapshot and
+  artifact-reference publication checks. Expanded deadline cases also passed.
+- Result/evidence/artifact publication checks the persisted deadline while holding
+  the owner lock. Safe terminal failure remains possible after the deadline.
+- Command: `ANALYSIS_TEST_POSTGRES=1 uv --directory backend run --env-file ../.env
+  python -m unittest discover -s tests -p test_analysis_storage.py -v`.
+- Storage and persistent-volume requirements: [storage.md](storage.md). Artifacts
+  are git-ignored; no Docker build or deployment performed.
+- C05 final-source regression and final expanded coverage run are recorded at C10.
+- Integration follow-up: Azure chat factory now accepts frozen `context.model`;
+  all 13 provider tests pass, so queued deployment settings survive config changes.
+- Next: C07 exposes safe registered-artifact/history APIs; C08 supplies store owners.

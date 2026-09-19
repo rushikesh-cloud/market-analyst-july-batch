@@ -12,6 +12,7 @@ from .contracts import (
     ModelConfiguration, SafeError,
 )
 from .models import AnalysisRun, utcnow
+from .publication_validation import ensure_before_deadline, validate_registered_result
 
 ACTIVE_STATUSES = ("queued", "running")
 
@@ -103,12 +104,14 @@ def publish_terminal(
     with Session(engine, expire_on_commit=False) as session, session.begin():
         run = owned_run(session, run_id, owner, generation, now)
         if result is not None:
+            ensure_before_deadline(run, now)
             # Revalidate even a caller-created model_copy/model_construct instance.
             result = AgentResult.model_validate(result.model_dump(mode="json"))
             if (result.run_id != run.id or result.agent_type != run.agent_type
                     or result.company.model_dump(mode="json") != run.company_snapshot
                     or result.as_of != run.as_of):
                 raise AnalysisError(ErrorCode.INVALID_OUTPUT)
+            validate_registered_result(session, result)
             run.result = result.model_dump(mode="json")
             run.status = result.status.value
         else:

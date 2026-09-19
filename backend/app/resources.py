@@ -15,7 +15,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 
 from .analysis.provider_config import AnalysisProviderSettings
-from .analysis.contracts import AnalysisError, ErrorCode
+from .analysis.contracts import AnalysisError, ErrorCode, ModelConfiguration
 
 
 def _required(name: str) -> str:
@@ -138,14 +138,22 @@ class AzureResourceClients:
     def analysis_model_configuration(self, agent_type):
         return self.settings.analysis.model_configuration(agent_type, self.settings.openai)
 
-    def analysis_chat_model(self, agent_type, *, timeout: float = 45.0):
+    def analysis_chat_model(
+        self, agent_type, *, timeout: float = 45.0,
+        configuration: ModelConfiguration | None = None,
+    ):
         """Resolve Azure credentials only on use; shared middleware owns retries."""
         from langchain_openai import AzureChatOpenAI
 
         if not 0 < timeout <= 45:
             raise AnalysisError(ErrorCode.CONFIGURATION_ERROR)
-        configuration = self.analysis_model_configuration(agent_type)
         try:
+            # Queued runs pass their frozen snapshot so settings changes cannot
+            # silently switch the deployment or API version during recovery.
+            configuration = (
+                ModelConfiguration.model_validate(configuration.model_dump())
+                if configuration is not None else self.analysis_model_configuration(agent_type)
+            )
             return AzureChatOpenAI(
                 azure_endpoint=self.settings.openai.endpoint,
                 api_version=configuration.api_version,

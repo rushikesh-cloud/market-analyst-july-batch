@@ -26,3 +26,6 @@ backend/data/
 documents/
 output/playwright/
 .playwright-cli/
+
+# Durable local analysis artifacts (back up outside Git)
+analysis-artifacts/

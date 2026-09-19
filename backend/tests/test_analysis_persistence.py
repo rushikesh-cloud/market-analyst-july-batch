@@ -18,7 +18,7 @@ from app.analysis.contracts import AgentResult, AgentType, AnalysisError, Compan
 from app.analysis.fixtures import result_fixture
 from app.analysis.models import AnalysisArtifact, AnalysisEvidence, AnalysisRun, utcnow
 from app.analysis.repository import enqueue_run, get_run, list_runs, publish_terminal, require_postgres
-from analysis_postgres_support import isolated_postgres
+from tests.analysis_postgres_support import isolated_postgres
 
 MODEL = ModelConfiguration(deployment="synthetic-model", api_version="synthetic-version")
 

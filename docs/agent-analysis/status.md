@@ -2,18 +2,18 @@
 
 This is the single source of truth for task progress. Task definitions and test cases remain in the linked plans; test results and implementation details belong in their session handoff records.
 
-**Overall: 5 / 32 tasks complete (16%).** Foundation implementation is active; see dependency schedule and task rows below.
+**Overall: 6 / 32 tasks complete (19%).** Foundation implementation is active; see dependency schedule and task rows below.
 
 ## Summary
 
 | Workstream | Total | Pending | In progress | Blocked | Complete |
 |---|---:|---:|---:|---:|---:|
-| [Common foundation](#common-foundation) | 10 | 4 | 1 | 0 | 5 |
+| [Common foundation](#common-foundation) | 10 | 3 | 1 | 0 | 6 |
 | [Fundamental agent](#fundamental-agent) | 7 | 7 | 0 | 0 | 0 |
 | [Technical agent](#technical-agent) | 7 | 7 | 0 | 0 | 0 |
 | [News agent](#news-agent) | 7 | 7 | 0 | 0 | 0 |
 | [Cross-agent integration](#cross-agent-integration) | 1 | 1 | 0 | 0 | 0 |
-| **Total** | **32** | **26** | **1** | **0** | **5** |
+| **Total** | **32** | **25** | **1** | **0** | **6** |
 
 All tasks begin as `pending`; creating the plans does not complete implementation tasks. A task waiting for its listed prerequisites remains `pending`, rather than `blocked`.
 
@@ -43,8 +43,8 @@ Owner/session and evidence fields use `—` until work starts. In the evidence c
 | [C03 — LangChain models, configuration, and provider boundaries](common-plan.md#c03--langchain-models-configuration-and-provider-boundaries) | C01 | `complete` | provider_prep / 2026-09-19 | 12 tests pass; Azure tool/structured/vision verified; [handoff](common-plan.md#c03-handoff); this commit. |
 | [C04 — NSE ticker normalization and compatibility](common-plan.md#c04--nse-ticker-normalization-and-compatibility) | C01 | `complete` | root + contracts / 2026-09-19 | 7 ticker tests, 1 PostgreSQL test and 2 Chromium cases pass; [handoff](common-plan.md#c04-handoff); this commit. |
 | [C05 — Analysis persistence and migrations](common-plan.md#c05--analysis-persistence-and-migrations) | C01 | `complete` | persistence_prep / 2026-09-19 | 7 tests pass with real PostgreSQL; [handoff](common-plan.md#c05-handoff); this commit. |
-| [C06 — Evidence ledger and artifact storage](common-plan.md#c06--evidence-ledger-and-artifact-storage) | C01, C05 | `in_progress` | contracts / 2026-09-19 | Run-local immutable evidence and atomically registered artifacts. |
-| [C07 — Analysis API and history](common-plan.md#c07--analysis-api-and-history) | C04–C06 | `pending` | — | — |
+| [C06 — Evidence ledger and artifact storage](common-plan.md#c06--evidence-ledger-and-artifact-storage) | C01, C05 | `complete` | contracts / 2026-09-19 | All six required PostgreSQL cases pass; [handoff](common-plan.md#c06-handoff); this commit. |
+| [C07 — Analysis API and history](common-plan.md#c07--analysis-api-and-history) | C04–C06 | `in_progress` | root / 2026-09-19 | Protected queue/history/artifact API and real PostgreSQL contract tests. |
 | [C08 — Durable worker, execution limits, and recovery](common-plan.md#c08--durable-worker-execution-limits-and-recovery) | C02–C03, C05–C07 | `pending` | — | — |
 | [C09 — Shared analysis UI and browser-test harness](common-plan.md#c09--shared-analysis-ui-and-browser-test-harness) | C01, C04, C07 | `pending` | — | — |
 | [C10 — Foundation acceptance and handoff](common-plan.md#c10--foundation-acceptance-and-handoff) | C01–C09 | `pending` | — | — |

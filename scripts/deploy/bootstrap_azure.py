@@ -27,6 +27,24 @@ def read_env(path):
                 if '=' in line and not line.lstrip().startswith('#'))
 
 
+def configure_federation(app_id, repo):
+    oidc = json.loads(run('gh', 'api', f'repos/{repo}/actions/oidc/customization/sub'))
+    if not oidc.get('use_default', False):
+        raise RuntimeError('Custom GitHub OIDC claims need an explicit federation mapping.')
+    prefix = oidc.get('sub_claim_prefix', f'repo:{repo}')
+    if oidc.get('use_immutable_subject') and 'sub_claim_prefix' not in oidc:
+        raise RuntimeError('GitHub did not return its immutable OIDC subject prefix.')
+    credential = {
+        'name': 'github-deploy-branch', 'issuer': 'https://token.actions.githubusercontent.com',
+        'subject': f'{prefix}:ref:refs/heads/deploy', 'audiences': ['api://AzureADTokenExchange'],
+    }
+    credentials = az('ad', 'app', 'federated-credential', 'list', '--id', app_id)
+    exists = any(item['name'] == credential['name'] for item in credentials)
+    operation = ['update', '--federated-credential-id', credential['name']] if exists else ['create']
+    az('ad', 'app', 'federated-credential', *operation, '--id', app_id,
+       '--parameters', json.dumps(credential))
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--env-file', required=True)
@@ -62,11 +80,7 @@ def main():
     app = apps[0] if apps else az('ad', 'app', 'create', '--display-name', 'market-analyst-july-github-deploy')
     principals = az('ad', 'sp', 'list', '--filter', f"appId eq '{app['appId']}'")
     principal = principals[0] if principals else az('ad', 'sp', 'create', '--id', app['appId'])
-    credentials = az('ad', 'app', 'federated-credential', 'list', '--id', app['id'])
-    if not any(item['name'] == 'github-deploy-branch' for item in credentials):
-        az('ad', 'app', 'federated-credential', 'create', '--id', app['id'], '--parameters', json.dumps({
-            'name': 'github-deploy-branch', 'issuer': 'https://token.actions.githubusercontent.com',
-            'subject': f'repo:{args.repo}:ref:refs/heads/deploy', 'audiences': ['api://AzureADTokenExchange']}))
+    configure_federation(app['id'], args.repo)
     az('role', 'assignment', 'create', '--assignee-object-id', principal['id'],
        '--assignee-principal-type', 'ServicePrincipal', '--role', 'Contributor', '--scope', group_id)
     variables = {

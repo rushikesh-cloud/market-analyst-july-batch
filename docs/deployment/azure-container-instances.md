@@ -23,7 +23,8 @@ HTTP to HTTPS, and forwards to the internal API on port 8000. The worker waits f
 API startup and migrations before polling PostgreSQL.
 
 GitHub uses an Entra application with a federated credential limited to
-`repo:rushikesh-cloud/market-analyst-july-batch:ref:refs/heads/deploy`. Its Contributor
+`repo:rushikesh-cloud@242802309/market-analyst-july-batch@1366980810:ref:refs/heads/deploy`.
+The bootstrap reads GitHub's actual OIDC subject prefix, including immutable IDs. Its Contributor
 role is limited to the deployment resource group. There is no Azure client secret.
 The separate runtime managed identity retrieves database and provider credentials
 from Key Vault. Existing PostgreSQL, OpenAI, and Document Intelligence resources

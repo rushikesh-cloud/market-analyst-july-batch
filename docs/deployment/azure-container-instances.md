@@ -106,7 +106,36 @@ Azure Files mounting in ACI requires root, so the workflow explicitly builds wit
 `RUNTIME_USER=root`. Ordinary local Docker builds retain `appuser`. This deployment
 uses the latest committed application baseline; the unfinished analysis worker
 is not included, so queued agentic analysis is not yet processed by this release.
-Existing local PDFs/artifacts are not copied to Azure Files by provisioning.
+Provisioning does not copy local PDFs/artifacts automatically. The first deployment
+copied the two existing report PDFs (11,973,003 bytes) into the documents share.
+For later migrations, copy source files before starting workers against an existing
+database; preserve the document-ID directory structure. For example, the Azure CLI
+can retrieve the storage key using your signed-in management identity:
+
+```bash
+az storage file upload-batch --account-name marketanalystjulyfiles \
+  --source /path/to/documents --destination documents --only-show-errors
+```
 
 The shared KB workflow index currently has no deployment-specific route; project
 configuration and the deployment-patterns skill were used for implementation.
+
+
+## First successful deployment
+
+Verified on 2026-09-19 through
+[GitHub Actions run 35425836838](https://github.com/rushikesh-cloud/market-analyst-july-batch/actions/runs/35425836838).
+Both the verification and deployment jobs completed successfully.
+
+- Application baseline: `4b01bb6`; deployed image commit: `6ec8038496edf125319b13da57e53c08584d0c6e`.
+- Backend: 102 tests, 17 opt-in tests skipped; frontend: seven tests passed;
+  deployment configuration: four tests passed.
+- HTTPS certificate issued by Let's Encrypt; health, frontend assets, anonymous
+  authentication rejection, and all container states passed both workflow and
+  independent checks.
+- API startup completed against Azure PostgreSQL; all three containers had zero
+  restarts at verification.
+
+The deployment branch was prepared in a separate sibling worktree to preserve
+unfinished work in the original `main` checkout. The successful action built and
+deployed the committed baseline; it did not deploy the uncommitted analysis worker.

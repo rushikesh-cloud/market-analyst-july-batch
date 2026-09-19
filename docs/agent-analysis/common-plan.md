@@ -367,3 +367,26 @@ Read [execution and validation conventions](README.md) and [the master plan](../
 - Integration follow-up: Azure chat factory now accepts frozen `context.model`;
   all 13 provider tests pass, so queued deployment settings survive config changes.
 - Next: C07 exposes safe registered-artifact/history APIs; C08 supplies store owners.
+
+## C07 handoff
+
+- Implementation commit: this commit.
+- Added protected start/history/read/artifact routes and `/api/analysis-agents`
+  capability discovery. `api_contracts.py` freezes public responses without provider
+  internals or paths. Submission resolves settings only and never invokes providers.
+- C07-01/C07-02: concurrent submission/replay/rerun test; C07-03: validation,
+  SQLite, missing IDs, ticker correction, adapter/config absence; C07-04: stable
+  tied-timestamp pagination/filter/company scope; C07-05: lifecycle/safe progress;
+  C07-06: registered bytes, mismatched IDs and encoded-path rejection. All mapped
+  methods are in `tests/test_analysis_api.py`: eight passed against real PostgreSQL,
+  zero failures/skips. Three offline API methods also pass independently.
+- Active submissions return the original run despite later configuration removal.
+  Malformed progress metadata is filtered safely. Artifact responses use attachment
+  disposition and nosniff, and encoded path attempts return 404.
+- Command: `ANALYSIS_TEST_POSTGRES=1 uv --directory backend run --env-file ../.env
+  coverage run --branch --data-file=/tmp/analysis-c07.coverage
+  --source=app.analysis.api,app.analysis.api_contracts -m unittest tests.test_analysis_api -v`.
+- C06 final validation: ten storage tests plus seven persistence regression tests;
+  all three storage modules achieve 100% statements/branches in combined coverage.
+- Next: C08 worker and C09 UI now execute independently; C10 integration harness
+  preparation is ready for their completed interfaces.

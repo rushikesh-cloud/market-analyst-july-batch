@@ -58,6 +58,15 @@ def enqueue_run(
         return run
 
 
+def find_active_run(engine: Engine, company_id: str, agent_type: AgentType) -> AnalysisRun | None:
+    require_postgres(engine)
+    with Session(engine) as session:
+        return session.scalar(select(AnalysisRun).where(
+            AnalysisRun.company_id == company_id, AnalysisRun.agent_type == agent_type,
+            AnalysisRun.status.in_(ACTIVE_STATUSES),
+        ))
+
+
 def get_run(engine: Engine, run_id: str) -> AnalysisRun | None:
     require_postgres(engine)
     with Session(engine) as session:

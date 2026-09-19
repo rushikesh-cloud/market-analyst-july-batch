@@ -9,6 +9,7 @@ from app.companies import Base, engine, router
 from app.documents import router as documents_router
 from app.document_search import router as document_search_router
 from app.auth import AuthenticatedUser, authorized_parties, require_workspace_access
+from app.analysis.api import router as analysis_router
 
 
 @asynccontextmanager
@@ -28,6 +29,7 @@ protected = APIRouter(dependencies=[Depends(require_workspace_access)])
 protected.include_router(router)
 protected.include_router(documents_router)
 protected.include_router(document_search_router)
+protected.include_router(analysis_router)
 
 
 @protected.get('/api/auth/me', tags=['auth'])

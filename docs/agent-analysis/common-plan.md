@@ -250,3 +250,22 @@ Read [execution and validation conventions](README.md) and [the master plan](../
 | C10-06 | P/B | Start without analysis worker, then start it: queued run remains durable and completes; UI accurately showed queued while the worker was absent. |
 
 **Done when:** the common foundation is committed, validated, and documented. Fundamental, technical, and news work can now proceed independently using their own providers, evidence rules, and UI detail components.
+
+## C01 handoff
+
+- Implementation commit: this commit (resolve through Git history).
+- Interfaces: `analysis/contracts.py`, `registry.py`, and `fixtures.py`; immutable
+  runtime identity, separate model schemas, three detail variants, safe failures,
+  explicit registry, and 12 synthetic fixtures. No production adapters installed.
+- Tests: `tests/test_analysis_contracts.py` maps C01-01–C01-06 to seven methods,
+  including safe errors. Focused unittest suite: 7 passed; statement and branch
+  coverage for contracts, fixtures, registry: 100%.
+- Command: `uv --directory backend run coverage run --branch --source=app.analysis
+  -m unittest tests.test_analysis_contracts` followed by `coverage report -m`.
+- Live checks: not applicable. Baseline backend: 48 tests, 6 expected PostgreSQL
+  skips. Baseline frontend build passed (existing bundle-size advisory).
+- Publication contract: C06/C08 must compare evidence snapshots against persisted
+  ledger contents as well as validating registered IDs and company/run identity.
+- Next: C02/C03/C04/C05 are independent and are now assigned concurrently.
+- Shared guidance used: `/home/azureuser/projects/knowledgebase/01-Active-Standards/retrieval-and-precedence.md`;
+  implementation follows the current project task pack.

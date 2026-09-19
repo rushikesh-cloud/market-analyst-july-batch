@@ -2,18 +2,18 @@
 
 This is the single source of truth for task progress. Task definitions and test cases remain in the linked plans; test results and implementation details belong in their session handoff records.
 
-**Overall: 0 / 32 tasks complete (0%).** Next eligible task: **[C01 — Typed contracts, fixtures, and registry](common-plan.md#c01--typed-contracts-fixtures-and-registry)**.
+**Overall: 1 / 32 tasks complete (3%).** Foundation implementation is active; see dependency schedule and task rows below.
 
 ## Summary
 
 | Workstream | Total | Pending | In progress | Blocked | Complete |
 |---|---:|---:|---:|---:|---:|
-| [Common foundation](#common-foundation) | 10 | 10 | 0 | 0 | 0 |
+| [Common foundation](#common-foundation) | 10 | 5 | 4 | 0 | 1 |
 | [Fundamental agent](#fundamental-agent) | 7 | 7 | 0 | 0 | 0 |
 | [Technical agent](#technical-agent) | 7 | 7 | 0 | 0 | 0 |
 | [News agent](#news-agent) | 7 | 7 | 0 | 0 | 0 |
 | [Cross-agent integration](#cross-agent-integration) | 1 | 1 | 0 | 0 | 0 |
-| **Total** | **32** | **32** | **0** | **0** | **0** |
+| **Total** | **32** | **27** | **4** | **0** | **1** |
 
 All tasks begin as `pending`; creating the plans does not complete implementation tasks. A task waiting for its listed prerequisites remains `pending`, rather than `blocked`.
 
@@ -38,11 +38,11 @@ Owner/session and evidence fields use `—` until work starts. In the evidence c
 
 | Task | Depends on | Status | Owner / session | Validation, handoff, commit / blocker |
 |---|---|---|---|---|
-| [C01 — Typed contracts, fixtures, and registry](common-plan.md#c01--typed-contracts-fixtures-and-registry) | none | `pending` | — | — |
-| [C02 — Deterministic scoring and evidence coverage](common-plan.md#c02--deterministic-scoring-and-evidence-coverage) | C01 | `pending` | — | — |
-| [C03 — LangChain models, configuration, and provider boundaries](common-plan.md#c03--langchain-models-configuration-and-provider-boundaries) | C01 | `pending` | — | — |
-| [C04 — NSE ticker normalization and compatibility](common-plan.md#c04--nse-ticker-normalization-and-compatibility) | C01 | `pending` | — | — |
-| [C05 — Analysis persistence and migrations](common-plan.md#c05--analysis-persistence-and-migrations) | C01 | `pending` | — | — |
+| [C01 — Typed contracts, fixtures, and registry](common-plan.md#c01--typed-contracts-fixtures-and-registry) | none | `complete` | contracts / 2026-09-19 | 7 tests pass; 100% statement/branch coverage; [handoff](common-plan.md#c01-handoff); this commit. |
+| [C02 — Deterministic scoring and evidence coverage](common-plan.md#c02--deterministic-scoring-and-evidence-coverage) | C01 | `in_progress` | contracts / 2026-09-19 | Deterministic arithmetic and evidence gates. |
+| [C03 — LangChain models, configuration, and provider boundaries](common-plan.md#c03--langchain-models-configuration-and-provider-boundaries) | C01 | `in_progress` | provider_prep / 2026-09-19 | Dependencies resolved; implementing bounded model calls and live capability checks. |
+| [C04 — NSE ticker normalization and compatibility](common-plan.md#c04--nse-ticker-normalization-and-compatibility) | C01 | `in_progress` | root / 2026-09-19 | Canonical NSE input and legacy compatibility. |
+| [C05 — Analysis persistence and migrations](common-plan.md#c05--analysis-persistence-and-migrations) | C01 | `in_progress` | persistence_prep / 2026-09-19 | Isolated PostgreSQL migration and persistence tests. |
 | [C06 — Evidence ledger and artifact storage](common-plan.md#c06--evidence-ledger-and-artifact-storage) | C01, C05 | `pending` | — | — |
 | [C07 — Analysis API and history](common-plan.md#c07--analysis-api-and-history) | C04–C06 | `pending` | — | — |
 | [C08 — Durable worker, execution limits, and recovery](common-plan.md#c08--durable-worker-execution-limits-and-recovery) | C02–C03, C05–C07 | `pending` | — | — |
@@ -96,3 +96,35 @@ Owner/session and evidence fields use `—` until work starts. In the evidence c
 | Change | Evidence |
 |---|---|
 | Initialized all 32 task statuses as pending. | Planning documents are complete; no agent implementation completion is recorded. |
+
+## Foundation dependency schedule — 2026-09-19
+
+```mermaid
+graph TD
+  C01 --> C02
+  C01 --> C03
+  C01 --> C04
+  C01 --> C05
+  C01 --> C06
+  C05 --> C06
+  C04 --> C07
+  C05 --> C07
+  C06 --> C07
+  C02 --> C08
+  C03 --> C08
+  C05 --> C08
+  C06 --> C08
+  C07 --> C08
+  C01 --> C09
+  C04 --> C09
+  C07 --> C09
+  C08 --> C10
+  C09 --> C10
+```
+
+C01 runs first. C02, C03, C04, and C05 then have independent implementation
+scopes; concurrency is limited to available agent slots. C06 follows C05,
+C07 follows C04–C06, and C08/C09 can then run concurrently. C10 integrates
+all foundation work. Provider verification and PostgreSQL acceptance are
+explicit gates; unavailable configuration will be recorded without marking
+the affected task complete. Agent-specific business logic remains pending.

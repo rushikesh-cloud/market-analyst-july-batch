@@ -100,6 +100,32 @@ announce inline errors with a link to the field. Persist through the API.
   PDF up to 50 MB are required. Deletion names the report and explains that all
   derived ingestion data is removed.
 
+## Analysis contract
+
+- Agentic Analysis reuses the application shell with one Run analysis action,
+  a labeled company selector, and Fundamental, Technical, and News tabs. Tabs
+  support Arrow keys, Home, End, and a single Tab stop.
+- Keep selection controls in one compact panel. Show textual run status and
+  progress in a polite live region, then saved history and the selected result.
+  Unavailable agents remain visible with an honest reason and Check availability.
+- Poll active runs every two seconds and stop after a terminal state or page exit.
+  Ignore responses for superseded company/agent selections. Keep the previous
+  successful result visible while a new run queues, executes, or fails.
+  Remember the selected company and agent within the browser tab across reloads;
+  always retrieve run history from the server.
+- Results show the saved company/ticker and assessment time, score, evidence
+  coverage, confidence, a generic parameter table, strengths, risks, limitations,
+  and evidence IDs/excerpts. Missing scores read “Not scored”. Do not substitute
+  zero or a neutral score. Agent tracks may add focused detail renderers here.
+- Evidence text renders as plain text. Source links allow HTTP(S) only. Artifact
+  download buttons fetch registered IDs through the authenticated API; never
+  expose storage paths or embed credentials in URLs.
+- Empty companies link to Add company. Failed reads offer Retry; ticker errors
+  offer Correct ticker. Preserve the selected context after a failed submission.
+- Stack and wrap controls on small screens. Parameter tables scroll inside an
+  accessible, keyboard-focusable region without widening the page. Use the
+  existing colors, type scale, borders, and spacing; no new design tokens.
+
 ## Authentication
 
 - Signed-out visitors see a compact Market Analyst sign-in panel with Sign in and

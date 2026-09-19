@@ -54,3 +54,21 @@ test('handles deletes and network failures', async () => {
   globalThis.fetch = async () => { throw new TypeError('network failure') }
   await assert.rejects(apiRequest(async () => 'session', '/api/companies'), /Unable to connect/)
 })
+
+test('artifact downloads retain authentication and return bytes without leaking response options', async () => {
+  globalThis.fetch = async (_path, options) => {
+    assert.equal(options.headers.get('Authorization'), 'Bearer session')
+    assert.equal(options.responseType, undefined)
+    assert.equal(options.redirect, 'error')
+    return new Response(new Uint8Array([137, 80, 78, 71]), { headers: { 'Content-Type': 'image/png' } })
+  }
+  const blob = await apiRequest(async () => 'session', '/api/analysis-runs/run/artifacts/id', { responseType: 'blob' })
+  assert.equal(blob.type, 'image/png')
+  assert.deepEqual([...new Uint8Array(await blob.arrayBuffer())], [137, 80, 78, 71])
+})
+
+test('analysis recovery retains the API error code', async () => {
+  globalThis.fetch = async () => Response.json({ detail: { code: 'ticker_correction_required', message: 'Correct ticker.' } }, { status: 409 })
+  await assert.rejects(apiRequest(async () => 'session', '/api/companies/id/analysis-runs'),
+    (error) => error.code === 'ticker_correction_required' && error.message === 'Correct ticker.')
+})

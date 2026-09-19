@@ -1,7 +1,18 @@
+export type ApiRequestOptions = RequestInit & { responseType?: 'json' | 'blob' }
+
+export class ApiError extends Error {
+  readonly code?: string
+  constructor(message: string, code?: string) {
+    super(message)
+    this.name = 'ApiError'
+    this.code = code
+  }
+}
+
 export async function apiRequest<T>(
   getToken: () => Promise<string | null>,
   path: string,
-  options?: RequestInit,
+  options?: ApiRequestOptions,
 ): Promise<T> {
   // Only send session credentials to this application's API.
   if (!path.startsWith('/api/')) throw new Error('Invalid API path.')
@@ -13,9 +24,10 @@ export async function apiRequest<T>(
     headers.set('Content-Type', 'application/json')
   }
   let response: Response
+  const { responseType = 'json', ...fetchOptions } = options ?? {}
   try {
     response = await fetch(path, {
-      ...options,
+      ...fetchOptions,
       headers,
       redirect: 'error',
     })
@@ -33,7 +45,9 @@ export async function apiRequest<T>(
         : Array.isArray(detail)
           ? detail.map((item: { msg?: string }) => item.msg).filter(Boolean).join(' ')
           : ''
-    throw new Error(message || 'Unable to save changes. Check the fields and try again.')
+    throw new ApiError(message || 'Unable to save changes. Check the fields and try again.',
+      typeof detail?.code === 'string' ? detail.code : undefined)
   }
-  return response.status === 204 ? (undefined as T) : response.json()
+  return response.status === 204 ? (undefined as T)
+    : responseType === 'blob' ? await response.blob() as T : response.json()
 }

@@ -1,0 +1,596 @@
+{
+  "fundamental": {
+    "schema_version": "1.0",
+    "run_id": "synthetic-fundamental-completed",
+    "agent_type": "fundamental",
+    "status": "completed",
+    "company": {
+      "id": "synthetic-company",
+      "name": "Synthetic Example Limited",
+      "ticker": "SYNTHETIC.NS"
+    },
+    "as_of": "2026-07-01T12:00:00Z",
+    "evidence_dates": [
+      "2026-07-01"
+    ],
+    "horizon": "Report period",
+    "summary": "Synthetic fixture only; no real financial facts.",
+    "parameters": [
+      {
+        "key": "growth",
+        "name": "Growth and business resilience",
+        "weight": 15.0,
+        "score": 6.0,
+        "explanation": "Synthetic fixture finding; not investment research.",
+        "evidence_ids": [
+          "evidence-1"
+        ]
+      },
+      {
+        "key": "profitability",
+        "name": "Profitability and efficiency",
+        "weight": 20.0,
+        "score": 6.0,
+        "explanation": "Synthetic fixture finding; not investment research.",
+        "evidence_ids": [
+          "evidence-1"
+        ]
+      },
+      {
+        "key": "balance_sheet",
+        "name": "Balance-sheet strength",
+        "weight": 20.0,
+        "score": 6.0,
+        "explanation": "Synthetic fixture finding; not investment research.",
+        "evidence_ids": [
+          "evidence-1"
+        ]
+      },
+      {
+        "key": "cash_generation",
+        "name": "Cash generation and liquidity",
+        "weight": 20.0,
+        "score": 6.0,
+        "explanation": "Synthetic fixture finding; not investment research.",
+        "evidence_ids": [
+          "evidence-1"
+        ]
+      },
+      {
+        "key": "governance",
+        "name": "Governance and reporting quality",
+        "weight": 15.0,
+        "score": 6.0,
+        "explanation": "Synthetic fixture finding; not investment research.",
+        "evidence_ids": [
+          "evidence-1"
+        ]
+      },
+      {
+        "key": "outlook",
+        "name": "Outlook and business risks",
+        "weight": 10.0,
+        "score": 6.0,
+        "explanation": "Synthetic fixture finding; not investment research.",
+        "evidence_ids": [
+          "evidence-1"
+        ]
+      }
+    ],
+    "final_score": 6.0,
+    "confidence": "high",
+    "coverage": 100.0,
+    "strengths": [
+      "Synthetic supported strength"
+    ],
+    "risks": [],
+    "limitations": [
+      "Synthetic data only"
+    ],
+    "evidence": [
+      {
+        "id": "evidence-1",
+        "run_id": "synthetic-fundamental-completed",
+        "type": "report_chunk",
+        "source": {
+          "title": "Synthetic evidence; not a real financial fact",
+          "document_id": "synthetic-report",
+          "chunk_id": "synthetic-chunk",
+          "page": 1,
+          "fiscal_year": "2025-26",
+          "url": null,
+          "publisher": null,
+          "published_at": null,
+          "publication_date": null,
+          "date_precision": "unknown",
+          "artifact_id": null
+        },
+        "excerpt": "Synthetic supporting observation for contract validation.",
+        "observation": null,
+        "provenance": {
+          "provider": "synthetic",
+          "retrieved_at": "2026-07-01T12:00:00Z",
+          "tool": "fixture",
+          "source_snapshot_id": "snapshot-1"
+        }
+      }
+    ],
+    "details": {
+      "kind": "fundamental",
+      "report_id": "synthetic-report",
+      "fiscal_year": "2025-26",
+      "basis": "consolidated",
+      "sector_profile": "operating_company",
+      "sector_evidence_ids": [
+        "evidence-1"
+      ],
+      "metrics": [
+        {
+          "key": "revenue",
+          "label": "Synthetic revenue",
+          "value": 100.0,
+          "currency": "INR",
+          "scale": "million",
+          "fiscal_period": "2025-26",
+          "basis": "consolidated",
+          "origin": "reported",
+          "evidence_ids": [
+            "evidence-1"
+          ]
+        }
+      ],
+      "warnings": []
+    }
+  },
+  "technical": {
+    "schema_version": "1.0",
+    "run_id": "synthetic-technical-completed",
+    "agent_type": "technical",
+    "status": "completed",
+    "company": {
+      "id": "synthetic-company",
+      "name": "Synthetic Example Limited",
+      "ticker": "SYNTHETIC.NS"
+    },
+    "as_of": "2026-07-01T12:00:00Z",
+    "evidence_dates": [
+      "2026-07-01"
+    ],
+    "horizon": "2\u20138 weeks",
+    "summary": "Synthetic fixture only; no real financial facts.",
+    "parameters": [
+      {
+        "key": "price_structure",
+        "name": "Price structure and trend",
+        "weight": 30.0,
+        "score": 6.0,
+        "explanation": "Synthetic fixture finding; not investment research.",
+        "evidence_ids": [
+          "evidence-1"
+        ]
+      },
+      {
+        "key": "macd",
+        "name": "MACD momentum",
+        "weight": 25.0,
+        "score": 6.0,
+        "explanation": "Synthetic fixture finding; not investment research.",
+        "evidence_ids": [
+          "evidence-1"
+        ]
+      },
+      {
+        "key": "rsi",
+        "name": "RSI condition",
+        "weight": 25.0,
+        "score": 6.0,
+        "explanation": "Synthetic fixture finding; not investment research.",
+        "evidence_ids": [
+          "evidence-1"
+        ]
+      },
+      {
+        "key": "volume",
+        "name": "Volume confirmation",
+        "weight": 20.0,
+        "score": 6.0,
+        "explanation": "Synthetic fixture finding; not investment research.",
+        "evidence_ids": [
+          "evidence-1"
+        ]
+      }
+    ],
+    "final_score": 6.0,
+    "confidence": "high",
+    "coverage": 100.0,
+    "strengths": [
+      "Synthetic supported strength"
+    ],
+    "risks": [],
+    "limitations": [
+      "Synthetic data only"
+    ],
+    "evidence": [
+      {
+        "id": "evidence-1",
+        "run_id": "synthetic-technical-completed",
+        "type": "chart",
+        "source": {
+          "title": "Synthetic evidence; not a real financial fact",
+          "document_id": null,
+          "chunk_id": null,
+          "page": null,
+          "fiscal_year": null,
+          "url": null,
+          "publisher": null,
+          "published_at": null,
+          "publication_date": null,
+          "date_precision": "unknown",
+          "artifact_id": "chart-1"
+        },
+        "excerpt": "Synthetic supporting observation for contract validation.",
+        "observation": {
+          "key": "synthetic",
+          "value": 6.0,
+          "unit": null,
+          "observed_at": "2026-07-01T12:00:00Z",
+          "description": "Synthetic data"
+        },
+        "provenance": {
+          "provider": "synthetic",
+          "retrieved_at": "2026-07-01T12:00:00Z",
+          "tool": "fixture",
+          "source_snapshot_id": "snapshot-1"
+        }
+      }
+    ],
+    "details": {
+      "kind": "technical",
+      "chart_artifact_id": "chart-1",
+      "data_artifact_id": "data-1",
+      "data_start": "2025-07-01",
+      "data_end": "2026-07-01",
+      "session_count": 250,
+      "adjustment": "Synthetic consistently adjusted OHLC",
+      "image_delivered": true,
+      "observations": [
+        {
+          "key": "rsi",
+          "value": 55.0,
+          "explanation": "Synthetic RSI observation",
+          "evidence_ids": [
+            "evidence-1"
+          ]
+        }
+      ],
+      "signal_agreement": "Synthetic indicators agree."
+    }
+  },
+  "news": {
+    "schema_version": "1.0",
+    "run_id": "synthetic-news-completed",
+    "agent_type": "news",
+    "status": "completed",
+    "company": {
+      "id": "synthetic-company",
+      "name": "Synthetic Example Limited",
+      "ticker": "SYNTHETIC.NS"
+    },
+    "as_of": "2026-07-01T12:00:00Z",
+    "evidence_dates": [
+      "2026-07-01"
+    ],
+    "horizon": "2\u20138 weeks",
+    "summary": "Synthetic fixture only; no real financial facts.",
+    "parameters": [
+      {
+        "key": "event-1",
+        "name": "Synthetic business development",
+        "weight": 2.0,
+        "score": 6.0,
+        "explanation": "Synthetic fixture finding; not investment research.",
+        "evidence_ids": [
+          "evidence-1"
+        ]
+      }
+    ],
+    "final_score": 6.0,
+    "confidence": "high",
+    "coverage": 100.0,
+    "strengths": [
+      "Synthetic supported strength"
+    ],
+    "risks": [],
+    "limitations": [
+      "Synthetic data only"
+    ],
+    "evidence": [
+      {
+        "id": "evidence-1",
+        "run_id": "synthetic-news-completed",
+        "type": "article",
+        "source": {
+          "title": "Synthetic evidence; not a real financial fact",
+          "document_id": null,
+          "chunk_id": null,
+          "page": null,
+          "fiscal_year": null,
+          "url": "https://example.invalid/synthetic-news",
+          "publisher": "Synthetic publisher",
+          "published_at": "2026-06-29T12:00:00Z",
+          "publication_date": null,
+          "date_precision": "timestamp",
+          "artifact_id": null
+        },
+        "excerpt": "Synthetic supporting observation for contract validation.",
+        "observation": null,
+        "provenance": {
+          "provider": "synthetic",
+          "retrieved_at": "2026-07-01T12:00:00Z",
+          "tool": "fixture",
+          "source_snapshot_id": "snapshot-1"
+        }
+      }
+    ],
+    "details": {
+      "kind": "news",
+      "window_start": "2026-06-01T12:00:00Z",
+      "window_end": "2026-07-01T12:00:00Z",
+      "events": [
+        {
+          "key": "event-1",
+          "title": "Synthetic business development",
+          "category": "business_developments",
+          "sentiment": 6.0,
+          "materiality": 1,
+          "factual_status": "confirmed",
+          "source_class": "attributable_reporting",
+          "explanation": "Synthetic fixture finding; not investment research.",
+          "uncertainty": null,
+          "evidence_ids": [
+            "evidence-1"
+          ],
+          "event_date": "2026-07-01",
+          "weight": 2.0,
+          "eligible": true
+        }
+      ],
+      "category_scores": [
+        {
+          "category": "financial_results",
+          "score": null
+        },
+        {
+          "category": "business_developments",
+          "score": 6.0
+        },
+        {
+          "category": "governance_regulatory",
+          "score": null
+        }
+      ],
+      "retained_article_count": 1,
+      "coverage_description": "Coverage of synthetic retained eligible event weight only."
+    }
+  },
+  "insufficient": {
+    "schema_version": "1.0",
+    "run_id": "synthetic-technical-insufficient_data",
+    "agent_type": "technical",
+    "status": "insufficient_data",
+    "company": {
+      "id": "synthetic-company",
+      "name": "Synthetic Example Limited",
+      "ticker": "SYNTHETIC.NS"
+    },
+    "as_of": "2026-07-01T12:00:00Z",
+    "evidence_dates": [],
+    "horizon": "2\u20138 weeks",
+    "summary": "Synthetic fixture only; no real financial facts.",
+    "parameters": [
+      {
+        "key": "price_structure",
+        "name": "Price structure and trend",
+        "weight": 30.0,
+        "score": null,
+        "explanation": "Synthetic fixture finding; not investment research.",
+        "evidence_ids": []
+      },
+      {
+        "key": "macd",
+        "name": "MACD momentum",
+        "weight": 25.0,
+        "score": null,
+        "explanation": "Synthetic fixture finding; not investment research.",
+        "evidence_ids": []
+      },
+      {
+        "key": "rsi",
+        "name": "RSI condition",
+        "weight": 25.0,
+        "score": null,
+        "explanation": "Synthetic fixture finding; not investment research.",
+        "evidence_ids": []
+      },
+      {
+        "key": "volume",
+        "name": "Volume confirmation",
+        "weight": 20.0,
+        "score": null,
+        "explanation": "Synthetic fixture finding; not investment research.",
+        "evidence_ids": []
+      }
+    ],
+    "final_score": null,
+    "confidence": "low",
+    "coverage": 0.0,
+    "strengths": [],
+    "risks": [],
+    "limitations": [
+      "Synthetic data only",
+      "Some evidence is missing"
+    ],
+    "evidence": [],
+    "details": {
+      "kind": "technical",
+      "chart_artifact_id": null,
+      "data_artifact_id": null,
+      "data_start": null,
+      "data_end": null,
+      "session_count": 0,
+      "adjustment": null,
+      "image_delivered": false,
+      "observations": [
+        {
+          "key": "rsi",
+          "value": null,
+          "explanation": "Synthetic RSI observation",
+          "evidence_ids": []
+        }
+      ],
+      "signal_agreement": null
+    }
+  },
+  "partial": {
+    "schema_version": "1.0",
+    "run_id": "synthetic-fundamental-partial",
+    "agent_type": "fundamental",
+    "status": "completed",
+    "company": {
+      "id": "synthetic-company",
+      "name": "Synthetic Example Limited",
+      "ticker": "SYNTHETIC.NS"
+    },
+    "as_of": "2026-07-01T12:00:00Z",
+    "evidence_dates": [
+      "2026-07-01"
+    ],
+    "horizon": "Report period",
+    "summary": "Synthetic fixture only; no real financial facts.",
+    "parameters": [
+      {
+        "key": "growth",
+        "name": "Growth and business resilience",
+        "weight": 15.0,
+        "score": 6.0,
+        "explanation": "Synthetic fixture finding; not investment research.",
+        "evidence_ids": [
+          "evidence-1"
+        ]
+      },
+      {
+        "key": "profitability",
+        "name": "Profitability and efficiency",
+        "weight": 20.0,
+        "score": 6.0,
+        "explanation": "Synthetic fixture finding; not investment research.",
+        "evidence_ids": [
+          "evidence-1"
+        ]
+      },
+      {
+        "key": "balance_sheet",
+        "name": "Balance-sheet strength",
+        "weight": 20.0,
+        "score": 6.0,
+        "explanation": "Synthetic fixture finding; not investment research.",
+        "evidence_ids": [
+          "evidence-1"
+        ]
+      },
+      {
+        "key": "cash_generation",
+        "name": "Cash generation and liquidity",
+        "weight": 20.0,
+        "score": 6.0,
+        "explanation": "Synthetic fixture finding; not investment research.",
+        "evidence_ids": [
+          "evidence-1"
+        ]
+      },
+      {
+        "key": "governance",
+        "name": "Governance and reporting quality",
+        "weight": 15.0,
+        "score": 6.0,
+        "explanation": "Synthetic fixture finding; not investment research.",
+        "evidence_ids": [
+          "evidence-1"
+        ]
+      },
+      {
+        "key": "outlook",
+        "name": "Outlook and business risks",
+        "weight": 10.0,
+        "score": null,
+        "explanation": "Synthetic fixture finding; not investment research.",
+        "evidence_ids": []
+      }
+    ],
+    "final_score": 6.0,
+    "confidence": "medium",
+    "coverage": 90.0,
+    "strengths": [
+      "Synthetic supported strength"
+    ],
+    "risks": [],
+    "limitations": [
+      "Synthetic data only",
+      "Some evidence is missing"
+    ],
+    "evidence": [
+      {
+        "id": "evidence-1",
+        "run_id": "synthetic-fundamental-partial",
+        "type": "report_chunk",
+        "source": {
+          "title": "Synthetic evidence; not a real financial fact",
+          "document_id": "synthetic-report",
+          "chunk_id": "synthetic-chunk",
+          "page": 1,
+          "fiscal_year": "2025-26",
+          "url": null,
+          "publisher": null,
+          "published_at": null,
+          "publication_date": null,
+          "date_precision": "unknown",
+          "artifact_id": null
+        },
+        "excerpt": "Synthetic supporting observation for contract validation.",
+        "observation": null,
+        "provenance": {
+          "provider": "synthetic",
+          "retrieved_at": "2026-07-01T12:00:00Z",
+          "tool": "fixture",
+          "source_snapshot_id": "snapshot-1"
+        }
+      }
+    ],
+    "details": {
+      "kind": "fundamental",
+      "report_id": "synthetic-report",
+      "fiscal_year": "2025-26",
+      "basis": "consolidated",
+      "sector_profile": "operating_company",
+      "sector_evidence_ids": [
+        "evidence-1"
+      ],
+      "metrics": [
+        {
+          "key": "revenue",
+          "label": "Synthetic revenue",
+          "value": 100.0,
+          "currency": "INR",
+          "scale": "million",
+          "fiscal_period": "2025-26",
+          "basis": "consolidated",
+          "origin": "reported",
+          "evidence_ids": [
+            "evidence-1"
+          ]
+        }
+      ],
+      "warnings": []
+    }
+  }
+}

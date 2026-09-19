@@ -390,3 +390,24 @@ Read [execution and validation conventions](README.md) and [the master plan](../
   all three storage modules achieve 100% statements/branches in combined coverage.
 - Next: C08 worker and C09 UI now execute independently; C10 integration harness
   preparation is ready for their completed interfaces.
+
+## C09 handoff
+
+- Implementation commit: this commit.
+- Focused analysis page, state/history hook, typed requests, status/history/result
+  and evidence components mounted in the existing shell. Shared request support
+  downloads authenticated blobs; source links permit HTTP(S) only. UI uses existing
+  tokens and the updated design baseline. No fixture adapter enters production.
+- C09-01–C09-07 map to `frontend/tests/e2e/analysis.spec.ts`. Final complete browser
+  suite: ten analysis scenarios plus two company cases passed. Additional cases
+  cover stale POST responses, secondary-company reload, unmount, and unsafe URLs.
+- Seven frontend Node request tests and production build passed. Existing bundle
+  size advisory remains; no build errors. Desktop, mobile, and 200% zoom screenshots
+  were reviewed in `output/playwright/analysis-{desktop,mobile,zoom}.png`.
+- Commands: `npm --prefix frontend run test:e2e`, `npm --prefix frontend run test`,
+  `npm run build`. Two focused accessibility/safe-content cases also reran after
+  final table styling and passed.
+- Active runs poll every two seconds, obsolete responses are ignored, same-scope
+  retries preserve results, and a prior success remains visible during reruns or
+  failure. Capability discovery disables unavailable agents honestly.
+- Next: C10 exercises the same UI against the real API, queue, worker and artifacts.

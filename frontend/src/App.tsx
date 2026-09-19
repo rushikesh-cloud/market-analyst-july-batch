@@ -3,6 +3,7 @@ import { UserButton } from '@clerk/react'
 import { Building2, ChartNoAxesCombined, ChevronRight, Files, Workflow, type LucideIcon } from 'lucide-react'
 import Companies from './Companies'
 import Documents from './Documents'
+import AnalysisPage from './AnalysisPage'
 
 type Page = 'companies' | 'documents' | 'analysis'
 const pages: { id: Page; label: string; icon: LucideIcon }[] = [
@@ -83,22 +84,7 @@ export default function App() {
           ) : page === 'documents' ? (
             <Documents />
           ) : (
-            <>
-              <div className="page-heading">
-                <h1>{active.label}</h1>
-              </div>
-              <section className="panel planned">
-                <active.icon size={30} />
-                <h2>{active.label}</h2>
-                <p>
-                  Company analysis and agent results are planned.
-                </p>
-                <a className="button secondary" href="#companies">
-                  View companies
-                  <ChevronRight size={16} />
-                </a>
-              </section>
-            </>
+            <AnalysisPage />
           )}
         </main>
       </div>

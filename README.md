@@ -14,6 +14,17 @@ Then start the React client and FastAPI server together:
 npm run dev
 ```
 
+Document ingestion also requires a worker. In a second terminal at the repository
+root, run:
+
+```bash
+npm run worker
+```
+
+Keep this process running while documents are ingested. `npm run dev` and the
+startup scripts below start only the frontend and API; without the worker,
+uploads remain queued.
+
 You can also launch both services using the scripts in the repository root.
 In Bash (Linux, macOS, or WSL):
 
@@ -122,7 +133,17 @@ start the web app, and run the durable worker as separate processes:
 
 ```bash
 npm run migrate
+```
+
+In one terminal, start the web app:
+
+```bash
 npm run dev
+```
+
+In a second terminal at the repository root, start and keep the worker running:
+
+```bash
 npm run worker
 ```
 
@@ -155,3 +176,20 @@ is rebuilt from the preceding retained chunk's content. A final short chunk, or
 one whose merge would exceed the limit, remains separate. Chunking version
 `page-header-v3` lets the existing stale-document queue rebuild older parsed
 documents and their embeddings.
+
+### Troubleshooting documents stuck in queued status
+
+If an upload stays `queued`, first check that `npm run worker` is running in a
+separate terminal. The API accepts uploads even when no worker is running, so a
+working web app does not mean ingestion is active.
+
+Start the worker from the repository root with `npm run worker`. It loads the same
+root `.env` as the API and automatically claims queued documents; an existing
+queued upload does not need to be uploaded again or retried. Check the worker's
+terminal for startup or connection errors if the document remains queued.
+
+Verify progress in the document detail page or with
+`GET /api/documents/{document_id}/status`. The document should move from `queued`
+through `parse`, `chunk`, `embed`, and `index` to `complete`. If ingestion reaches
+`failed`, inspect the reported error and use the detail page's retry action after
+addressing the cause.

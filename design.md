@@ -96,6 +96,16 @@ through the API; never use local browser storage as the system of record.
   PDF up to 50 MB are required. Deletion names the report and explains that all
   derived ingestion data is removed.
 
+## Authentication
+
+- Signed-out visitors see a compact Market Analyst sign-in panel with Sign in and
+  Sign up controls. Clerk owns the authentication forms and account management.
+- Signed-in users access their profile and Sign out through the header user button,
+  which remains visible at mobile widths. Clerk uses the existing font and color tokens.
+- Mount workspace pages only after session loading and API access verification.
+  Show loading, unavailable, and access-pending states with Retry where appropriate.
+- Signing out or switching sessions clears mounted workspace state.
+
 ## Accessibility and behavior
 
 Semantic navigation, headings, tables, forms, and buttons. Visible keyboard focus,

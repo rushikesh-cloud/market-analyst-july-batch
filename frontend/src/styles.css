@@ -16,6 +16,21 @@
   --accent-soft: #e9f5f2;
   --danger: #bd3434;
 }
+.auth-screen {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+.auth-panel {
+  width: min(100%, 420px);
+  padding: 32px;
+}
+.auth-panel > svg { color: var(--accent); }
+.auth-panel h1 { font-size: 28px; font-weight: 600; }
+.auth-panel p { color: var(--muted); line-height: 1.5; }
+.auth-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+.account-control { margin-left: auto; display: flex; align-items: center; }
 * {
   box-sizing: border-box;
 }

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { CircleAlert, LoaderCircle, Search } from 'lucide-react'
-import { apiRequest } from './api-request'
+import { useApiRequest } from './use-api-request'
 import ChunkCard from './ChunkCard'
 import type { Chunk } from './document-types'
 
@@ -24,6 +24,7 @@ export default function DocumentSearch({
   documentId: string
   ready: boolean
 }) {
+  const apiRequest = useApiRequest()
   const [query, setQuery] = useState('')
   const [k, setK] = useState('10')
   const [tokens, setTokens] = useState('10000')

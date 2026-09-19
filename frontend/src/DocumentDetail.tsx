@@ -17,7 +17,7 @@ import {
   Clock3,
   LoaderCircle,
 } from 'lucide-react'
-import { apiRequest } from './api-request'
+import { useApiRequest } from './use-api-request'
 import { StatusBadge, formatDate } from './document-format'
 import type {
   Report,
@@ -69,6 +69,7 @@ export default function DocumentDetail({
   report: Report
   onBack: () => void
 }) {
+  const apiRequest = useApiRequest()
   const [tab, setTab] = useState<'status' | 'content' | 'search'>('status')
   const [status, setStatus] = useState<ReportStatus | null>(null)
   const [markdown, setMarkdown] = useState('')
@@ -92,7 +93,7 @@ export default function DocumentDetail({
       setError((reason as Error).message)
       return null
     }
-  }, [report.id])
+  }, [report.id, apiRequest])
   useEffect(() => {
     let cancelled = false
     let timer = 0
@@ -152,7 +153,7 @@ export default function DocumentDetail({
     return () => {
       cancelled = true
     }
-  }, [tab, contentAvailable, page, report.id, status?.status])
+  }, [tab, contentAvailable, page, report.id, status?.status, apiRequest])
   useEffect(() => {
     setPageInput(String(page))
   }, [page])

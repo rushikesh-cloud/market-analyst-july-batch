@@ -8,6 +8,7 @@ from unittest.mock import patch
 from uuid import uuid4
 
 from fastapi.testclient import TestClient
+from app.auth import AuthenticatedUser, require_workspace_access
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session
 
@@ -20,6 +21,11 @@ class SearchApiTests(unittest.TestCase):
         self.directory = tempfile.TemporaryDirectory()
         self.engine = create_engine(f"sqlite:///{self.directory.name}/search.db")
         companies.Base.metadata.create_all(self.engine)
+        auth_override = patch.dict(app.dependency_overrides, {
+            require_workspace_access: lambda: AuthenticatedUser('user_test', 'sess_test'),
+        })
+        auth_override.start()
+        self.addCleanup(auth_override.stop)
         self.client = TestClient(app)
 
     def tearDown(self):
@@ -101,6 +107,11 @@ class PostgresSearchTests(unittest.TestCase):
                         patch.object(document_search, 'get_resource_clients', return_value=self.provider)]
         for item in self.patches:
             item.start()
+        auth_override = patch.dict(app.dependency_overrides, {
+            require_workspace_access: lambda: AuthenticatedUser('user_test', 'sess_test'),
+        })
+        auth_override.start()
+        self.addCleanup(auth_override.stop)
         self.client = TestClient(app)
 
     def embed(self, **kwargs):

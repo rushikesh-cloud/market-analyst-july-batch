@@ -94,7 +94,9 @@ versioned migrations. If neither `DATABASE_URL` nor Azure database mode is confi
 the local fallback is `backend/data/market-analyst.db` (SQLite, ignored by Git).
 Azure connection failures never fall back to SQLite. For Docker, supply the Azure
 resource environment configuration and managed identity, or `DATABASE_URL`.
-The starter has no authentication; production access control is still pending.
+Clerk provides sign-up and sign-in, with verified sessions required by the API.
+See [authentication setup](docs/clerk-authentication.md) for local keys, workspace
+approval, and production configuration.
 
 ## Azure resource utilities
 

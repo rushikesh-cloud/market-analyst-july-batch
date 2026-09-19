@@ -5,6 +5,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
+from app.auth import AuthenticatedUser, require_workspace_access
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
@@ -26,6 +27,11 @@ class DocumentApiTests(unittest.TestCase):
         ]
         for item in self.patches:
             item.start()
+        auth_override = patch.dict(app.dependency_overrides, {
+            require_workspace_access: lambda: AuthenticatedUser('user_test', 'sess_test'),
+        })
+        auth_override.start()
+        self.addCleanup(auth_override.stop)
         self.client = TestClient(app)
         self.company = self.client.post(
             "/api/companies", json={"name": "Microsoft", "ticker": "MSFT"}
@@ -144,6 +150,11 @@ class WorkerTests(unittest.TestCase):
         ]
         for item in self.patches:
             item.start()
+        auth_override = patch.dict(app.dependency_overrides, {
+            require_workspace_access: lambda: AuthenticatedUser('user_test', 'sess_test'),
+        })
+        auth_override.start()
+        self.addCleanup(auth_override.stop)
         self.client = TestClient(app)
         company = self.client.post(
             "/api/companies", json={"name": "Microsoft", "ticker": "MSFT"}

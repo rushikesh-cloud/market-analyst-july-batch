@@ -7,6 +7,7 @@ from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from fastapi.testclient import TestClient
+from app.auth import AuthenticatedUser, require_workspace_access
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
@@ -39,6 +40,11 @@ class DocumentQueueIsolationTests(unittest.TestCase):
         migration = patch("app.migrate.migrate")
         migration.start()
         self.addCleanup(migration.stop)
+        auth_override = patch.dict(main.app.dependency_overrides, {
+            require_workspace_access: lambda: AuthenticatedUser('user_test', 'sess_test'),
+        })
+        auth_override.start()
+        self.addCleanup(auth_override.stop)
         self.client = TestClient(main.app)
         self.addCleanup(self.client.close)
         self.company = self.client.post(

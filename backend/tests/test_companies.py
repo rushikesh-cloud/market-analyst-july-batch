@@ -4,6 +4,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
+from app.auth import AuthenticatedUser, require_workspace_access
 from sqlalchemy import create_engine
 
 from app import companies
@@ -17,6 +18,11 @@ class CompanyTests(unittest.TestCase):
         companies.Base.metadata.create_all(self.engine)
         self.override = patch.object(companies, "engine", self.engine)
         self.override.start()
+        auth_override = patch.dict(app.dependency_overrides, {
+            require_workspace_access: lambda: AuthenticatedUser('user_test', 'sess_test'),
+        })
+        auth_override.start()
+        self.addCleanup(auth_override.stop)
         self.client = TestClient(app)
 
     def tearDown(self):

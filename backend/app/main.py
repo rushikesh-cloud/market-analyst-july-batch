@@ -1,13 +1,14 @@
 from pathlib import Path
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import APIRouter, Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.companies import Base, engine, router
 from app.documents import router as documents_router
 from app.document_search import router as document_search_router
+from app.auth import AuthenticatedUser, authorized_parties, require_workspace_access
 
 
 @asynccontextmanager
@@ -23,14 +24,23 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Market Analyst API", version="0.1.0", lifespan=lifespan)
-app.include_router(router)
-app.include_router(documents_router)
-app.include_router(document_search_router)
+protected = APIRouter(dependencies=[Depends(require_workspace_access)])
+protected.include_router(router)
+protected.include_router(documents_router)
+protected.include_router(document_search_router)
+
+
+@protected.get('/api/auth/me', tags=['auth'])
+def current_user(user: AuthenticatedUser = Depends(require_workspace_access)) -> dict[str, str]:
+    return {'user_id': user.user_id}
+
+
+app.include_router(protected)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
-    allow_credentials=True,
+    allow_origins=authorized_parties(),
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

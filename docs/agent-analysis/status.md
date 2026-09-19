@@ -2,18 +2,18 @@
 
 This is the single source of truth for task progress. Task definitions and test cases remain in the linked plans; test results and implementation details belong in their session handoff records.
 
-**Overall: 4 / 32 tasks complete (12%).** Foundation implementation is active; see dependency schedule and task rows below.
+**Overall: 5 / 32 tasks complete (16%).** Foundation implementation is active; see dependency schedule and task rows below.
 
 ## Summary
 
 | Workstream | Total | Pending | In progress | Blocked | Complete |
 |---|---:|---:|---:|---:|---:|
-| [Common foundation](#common-foundation) | 10 | 4 | 2 | 0 | 4 |
+| [Common foundation](#common-foundation) | 10 | 4 | 1 | 0 | 5 |
 | [Fundamental agent](#fundamental-agent) | 7 | 7 | 0 | 0 | 0 |
 | [Technical agent](#technical-agent) | 7 | 7 | 0 | 0 | 0 |
 | [News agent](#news-agent) | 7 | 7 | 0 | 0 | 0 |
 | [Cross-agent integration](#cross-agent-integration) | 1 | 1 | 0 | 0 | 0 |
-| **Total** | **32** | **26** | **2** | **0** | **4** |
+| **Total** | **32** | **26** | **1** | **0** | **5** |
 
 All tasks begin as `pending`; creating the plans does not complete implementation tasks. A task waiting for its listed prerequisites remains `pending`, rather than `blocked`.
 
@@ -40,7 +40,7 @@ Owner/session and evidence fields use `—` until work starts. In the evidence c
 |---|---|---|---|---|
 | [C01 — Typed contracts, fixtures, and registry](common-plan.md#c01--typed-contracts-fixtures-and-registry) | none | `complete` | contracts / 2026-09-19 | 7 tests pass; 100% statement/branch coverage; [handoff](common-plan.md#c01-handoff); this commit. |
 | [C02 — Deterministic scoring and evidence coverage](common-plan.md#c02--deterministic-scoring-and-evidence-coverage) | C01 | `complete` | contracts / 2026-09-19 | 7 tests pass; 100% statement/branch coverage; [handoff](common-plan.md#c02-handoff); this commit. |
-| [C03 — LangChain models, configuration, and provider boundaries](common-plan.md#c03--langchain-models-configuration-and-provider-boundaries) | C01 | `in_progress` | provider_prep / 2026-09-19 | Dependencies resolved; implementing bounded model calls and live capability checks. |
+| [C03 — LangChain models, configuration, and provider boundaries](common-plan.md#c03--langchain-models-configuration-and-provider-boundaries) | C01 | `complete` | provider_prep / 2026-09-19 | 12 tests pass; Azure tool/structured/vision verified; [handoff](common-plan.md#c03-handoff); this commit. |
 | [C04 — NSE ticker normalization and compatibility](common-plan.md#c04--nse-ticker-normalization-and-compatibility) | C01 | `complete` | root + contracts / 2026-09-19 | 7 ticker tests, 1 PostgreSQL test and 2 Chromium cases pass; [handoff](common-plan.md#c04-handoff); this commit. |
 | [C05 — Analysis persistence and migrations](common-plan.md#c05--analysis-persistence-and-migrations) | C01 | `complete` | persistence_prep / 2026-09-19 | 7 tests pass with real PostgreSQL; [handoff](common-plan.md#c05-handoff); this commit. |
 | [C06 — Evidence ledger and artifact storage](common-plan.md#c06--evidence-ledger-and-artifact-storage) | C01, C05 | `in_progress` | contracts / 2026-09-19 | Run-local immutable evidence and atomically registered artifacts. |

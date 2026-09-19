@@ -14,6 +14,9 @@ from openai import AzureOpenAI
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 
+from .analysis.provider_config import AnalysisProviderSettings
+from .analysis.contracts import AnalysisError, ErrorCode
+
 
 def _required(name: str) -> str:
     value = os.environ.get(name, "").strip()
@@ -54,10 +57,12 @@ class ResourceSettings:
     openai: OpenAISettings
     document_intelligence: DocumentIntelligenceSettings
     database: DatabaseSettings
+    analysis: AnalysisProviderSettings = AnalysisProviderSettings()
 
     @classmethod
     def from_environment(cls) -> "ResourceSettings":
         return cls(
+            analysis=AnalysisProviderSettings.from_environment(),
             key_vault_uri=_required("AZURE_KEY_VAULT_URI"),
             openai=OpenAISettings(
                 endpoint=_required("AZURE_OPENAI_ENDPOINT"),
@@ -129,6 +134,35 @@ class AzureResourceClients:
                 ),
             )
         return self._document_intelligence
+
+    def analysis_model_configuration(self, agent_type):
+        return self.settings.analysis.model_configuration(agent_type, self.settings.openai)
+
+    def analysis_chat_model(self, agent_type, *, timeout: float = 45.0):
+        """Resolve Azure credentials only on use; shared middleware owns retries."""
+        from langchain_openai import AzureChatOpenAI
+
+        if not 0 < timeout <= 45:
+            raise AnalysisError(ErrorCode.CONFIGURATION_ERROR)
+        configuration = self.analysis_model_configuration(agent_type)
+        try:
+            return AzureChatOpenAI(
+                azure_endpoint=self.settings.openai.endpoint,
+                api_version=configuration.api_version,
+                azure_deployment=configuration.deployment,
+                api_key=self.secrets.get(self.settings.openai.key_secret_name),
+                timeout=timeout,
+                max_retries=0,
+            )
+        except Exception:
+            raise AnalysisError(ErrorCode.CONFIGURATION_ERROR) from None
+
+    def tavily_api_key(self) -> str:
+        secret_name = self.settings.analysis.require_tavily_secret()
+        try:
+            return self.secrets.get(secret_name)
+        except Exception:
+            raise AnalysisError(ErrorCode.CONFIGURATION_ERROR) from None
 
     def database_url(self) -> str:
         if self._database_url is not None:

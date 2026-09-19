@@ -321,3 +321,28 @@ Read [execution and validation conventions](README.md) and [the master plan](../
   pgvector extension is required and never created or removed by these tests.
 - Next: C06 adds immutable ledger validation and durable artifact bytes; C08 adds
   claims, heartbeat and budget reservation. Coverage details follow the final run.
+
+## C03 handoff
+
+- Implementation commit: this commit.
+- Locked LangChain 1.4.2, langchain-openai 1.6.2 and OpenAI 2.54.0 for Python 3.13.
+  Extended existing resource clients with lazy chat/secret configuration. Provider
+  middleware reserves each model attempt before execution; retries and repairs
+  share ten-call budget and deadline, without SDK retry amplification.
+- C03-01–C03-07: `test_analysis_providers.py`, 12 deterministic tests passed;
+  resource tests 3 passed; all eight search tests passed with real PostgreSQL.
+  Provider modules: 100% statements, 92% branches. Backend regression: 91 tests,
+  15 explicit opt-in PostgreSQL/live skips; required provider cases ran separately.
+- C03-08 live: Terra default for fundamental/technical/news each called `read_probe`
+  once and returned validated 731 (two model calls each). Actual PNG image input
+  identified H7, a purple circle on the left and orange triangle on the right
+  (one model call, 3.608 seconds). Required text/structured/vision capabilities passed.
+- Observations: initial homemade Q7 glyph was interpreted as 07; an unambiguous H7
+  image passed. A redundant text rerun timed out transiently and was stopped; the
+  earlier three text checks and independent corrected-image check passed.
+- Commands: focused `tests.test_analysis_providers`, `tests.test_resources`;
+  `RUN_SEARCH_POSTGRES_TESTS=1` for existing search tests; `ANALYSIS_LIVE_TESTS=1`
+  for `tests.test_analysis_providers_live`, with `uv --env-file ../.env`.
+- No Tavily secret setting exists; unrelated startup/model configuration remains
+  usable. Real news-provider readiness belongs to its downstream track.
+- C08 implements persistent `CallBudget.remaining_seconds/reserve_model_call`.

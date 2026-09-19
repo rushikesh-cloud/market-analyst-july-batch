@@ -1,5 +1,10 @@
 """Regression checks for public exposure, identity, and durable storage."""
 import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
 import unittest
 
 from render_aci import render
@@ -18,6 +23,18 @@ class DeploymentSpecificationTests(unittest.TestCase):
         }
         self.spec = render(self.env)
         self.props = self.spec['properties']
+
+    def test_cli_writes_private_secret_file_and_refuses_to_overwrite(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'aci.json'
+            env = {**os.environ, **self.env, 'ACI_SPEC_PATH': str(path)}
+            command = [sys.executable, str(Path(__file__).with_name('render_aci.py'))]
+            subprocess.run(command, env=env, check=True, capture_output=True)
+            self.assertEqual(json.loads(path.read_text()), self.spec)
+            self.assertEqual(path.stat().st_mode & 0o777, 0o600)
+            second = subprocess.run(command, env=env, capture_output=True)
+            self.assertNotEqual(second.returncode, 0)
+            self.assertEqual(json.loads(path.read_text()), self.spec)
 
     def test_only_https_proxy_is_public(self):
         self.assertEqual({item['port'] for item in self.props['ipAddress']['ports']}, {80, 443})

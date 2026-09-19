@@ -59,5 +59,5 @@ def render(env):
 if __name__ == '__main__':
     path = Path(os.environ['ACI_SPEC_PATH'])
     # O_EXCL prevents an existing file or symlink from being overwritten.
-    with path.open('x', opener=lambda p, flags: os.open(p, flags, 0o600)) as output:
+    with open(path, 'x', opener=lambda p, flags: os.open(p, flags, 0o600)) as output:
         json.dump(render(os.environ), output)

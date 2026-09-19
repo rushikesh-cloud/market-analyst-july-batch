@@ -1,5 +1,14 @@
 # Three independent company-analysis agents
 
+Detailed implementation and validation tasks are in the [task pack](docs/agent-analysis/README.md):
+
+- [Common foundation — C01–C10](docs/agent-analysis/common-plan.md)
+- [Fundamental agent — F01–F07](docs/agent-analysis/fundamental-plan.md)
+- [Technical agent — T01–T07](docs/agent-analysis/technical-plan.md)
+- [News agent — N01–N07](docs/agent-analysis/news-plan.md)
+
+Complete the common foundation first. Each agent track then assumes those shared interfaces and services are available. The task pack also includes cross-agent acceptance task I01. All implementation tasks are currently pending.
+
 ## 1. Outcome and architecture
 
 Build three independently runnable agents using **`from langchain.agents import create_agent`**, followed by an Agentic Analysis UI for selecting a company, running each agent, and reviewing saved results.
@@ -30,7 +39,8 @@ Each agent returns parameter scores and its own final score out of 10. A combine
 - Higher always means healthier or more favorable.
 - The model assigns evidence-supported parameter scores; application code calculates the weighted final score, rounded to one decimal.
 - Missing evidence produces an unscored parameter, never an invented neutral score.
-- Calculate a final score only when supported parameters cover at least 70% of the configured weight and the agent’s required evidence is present. Otherwise return `insufficient_data`.
+- For fundamental and technical results, calculate a final score only when supported parameters cover at least 70% of the configured weight and the agent’s required evidence is present. Normalize the weighted sum by the supported weight. Otherwise return `insufficient_data`.
+- News uses a normalized event-weighted average and requires at least 70% coverage of retained eligible-event weight; absent news categories are not missing parameters. This coverage does not measure all real-world news.
 - Confidence and evidence coverage remain separate from the score.
 
 ## 2. Agent specifications
@@ -139,13 +149,13 @@ Use Matplotlib/mplfinance with a headless backend. Store the chart under the run
 - Give each distinct event a sentiment score from 0–10, a materiality level of 1–3, and a cited explanation.
 - Weight events from the latest seven days twice as heavily as older events.
 - Use source weights of 1 for official disclosures or attributable reporting, and 0.5 for attributed commentary or uncorroborated claims.
-- Calculate the final score in code from event sentiment × materiality × recency × source weight. Multiple articles about one event do not multiply its influence.
+- Calculate the final score in code as `sum(sentiment * event_weight) / sum(event_weight)` over assessed events, where `event_weight = materiality * recency * source_weight`. Multiple articles about one event do not multiply its influence. Coverage compares assessed event weight with total retained eligible-event weight, as detailed in news/N05.
 - Show category breakdowns for financial results, business developments, and governance/regulatory events where evidence exists.
 - No relevant dated news means `insufficient_data`, not 5/10. Sparse or disputed evidence lowers confidence.
 
 ## 3. Session-sized implementation tasks
 
-Each task below becomes a separate task document containing prerequisites, scope, interfaces, acceptance checks, and a completion/handoff section. Create the task pack under `docs/agent-analysis/` during implementation.
+The table below records the original coarse milestones. The [detailed task pack](docs/agent-analysis/README.md) expands them into 32 tasks grouped into common, fundamental, technical, news, and integration plans. Each task section defines prerequisites, deliverables, explicit test scenarios and expected results, and a completion gate; the index provides the milestone mapping and session handoff template.
 
 | Task | Dependencies | Deliverable and acceptance |
 |---|---|---|

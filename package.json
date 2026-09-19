@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "set -a && . ./.env && set +a && concurrently --kill-others-on-fail --names frontend,backend --prefix-colors cyan,green \"npm --prefix frontend run dev\" \"uv --directory backend run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000\"",
+    "dev": "concurrently --kill-others-on-fail --names frontend,backend --prefix-colors cyan,green \"npm run dev:frontend\" \"npm run dev:backend\"",
     "dev:frontend": "npm --prefix frontend run dev",
     "dev:backend": "uv --directory backend run --env-file ../.env uvicorn app.main:app --reload --host 0.0.0.0 --port 8000",
     "worker": "uv --directory backend run --env-file ../.env python -m app.worker",

@@ -14,6 +14,24 @@ Then start the React client and FastAPI server together:
 npm run dev
 ```
 
+On Windows, you can also launch both services using the scripts in the repository
+root. In Command Prompt:
+
+```cmd
+start-dev.cmd
+```
+
+Or in PowerShell:
+
+```powershell
+.\start-dev.ps1
+```
+
+Both scripts run from the repository root even when invoked from another directory.
+They require the same dependency installation above and Node.js/npm and uv on your
+PATH. The backend loads the root `.env` through uv. Press Ctrl+C to stop both services.
+If PowerShell blocks script execution, use `.\start-dev.cmd` from PowerShell.
+
 The client is available at http://localhost:5173 and the API docs at http://localhost:8000/docs. The FastAPI dependencies are managed in `backend/pyproject.toml` and locked in `backend/uv.lock`.
 
 ## Docker

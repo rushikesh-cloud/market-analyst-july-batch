@@ -1,0 +1,95 @@
+name: Deploy to Azure Container Instances
+
+on:
+  push:
+    branches: [deploy]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: azure-aci-deploy
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.11.33'
+          enable-cache: true
+      - name: Test backend
+        run: uv --directory backend run --frozen python -m unittest discover -s tests
+      - name: Test frontend
+        run: |
+          npm ci --prefix frontend
+          npm test --prefix frontend
+      - name: Test deployment configuration
+        run: python -m unittest discover -s scripts/deploy -p 'test_*.py'
+
+  deploy:
+    if: github.ref == 'refs/heads/deploy'
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
+      AZURE_ACR_NAME: ${{ vars.AZURE_ACR_NAME }}
+      AZURE_ACR_SERVER: ${{ vars.AZURE_ACR_SERVER }}
+      AZURE_CONTAINER_NAME: ${{ vars.AZURE_CONTAINER_NAME }}
+      AZURE_DNS_LABEL: ${{ vars.AZURE_DNS_LABEL }}
+      AZURE_STORAGE_ACCOUNT: ${{ vars.AZURE_STORAGE_ACCOUNT }}
+      AZURE_RUNTIME_IDENTITY_ID: ${{ vars.AZURE_RUNTIME_IDENTITY_ID }}
+      DEPLOY_IMAGE: ${{ vars.AZURE_ACR_SERVER }}/market-analyst:${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      - uses: docker/setup-buildx-action@v3
+      - name: Sign in to Azure Container Registry
+        run: az acr login --name "$AZURE_ACR_NAME"
+      - name: Build and push immutable image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ env.DEPLOY_IMAGE }}
+          build-args: |
+            VITE_CLERK_PUBLISHABLE_KEY=${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+            RUNTIME_USER=root
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Deploy container group
+        env:
+          APP_ENV_JSON: ${{ secrets.APP_ENV_JSON }}
+          AZURE_STORAGE_KEY: ${{ secrets.AZURE_STORAGE_KEY }}
+          ACI_SPEC_PATH: ${{ runner.temp }}/aci-${{ github.run_id }}-${{ github.run_attempt }}.json
+        run: |
+          set -euo pipefail
+          trap 'rm -f "$ACI_SPEC_PATH"' EXIT
+          python scripts/deploy/render_aci.py
+          az container create --resource-group "$AZURE_RESOURCE_GROUP" --file "$ACI_SPEC_PATH" --only-show-errors --output none
+      - name: Verify live deployment
+        run: python scripts/deploy/verify_deployment.py --resource-group "$AZURE_RESOURCE_GROUP" --name "$AZURE_CONTAINER_NAME"
+      - name: Record deployment
+        run: |
+          fqdn=$(az container show -g "$AZURE_RESOURCE_GROUP" -n "$AZURE_CONTAINER_NAME" --query ipAddress.fqdn -o tsv)
+          echo "Deployed commit: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+          echo "Application: https://$fqdn" >> "$GITHUB_STEP_SUMMARY"
+          echo "Image: $DEPLOY_IMAGE" >> "$GITHUB_STEP_SUMMARY"

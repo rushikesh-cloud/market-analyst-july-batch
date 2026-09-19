@@ -64,8 +64,9 @@ The image serves the React build and API from http://localhost:8000.
 
 ## Azure Container Instances
 
-ACI deployment is intentionally deferred. After this project has a deployable container image,
-create and deploy its Azure Container Instance as a separate activity.
+Pushes to the `deploy` branch run tests, publish a commit-tagged image to Azure
+Container Registry, and deploy the web app and document worker to ACI with HTTPS
+and persistent storage. See [deployment setup and operations](docs/deployment/azure-container-instances.md).
 
 ## Companies and design
 

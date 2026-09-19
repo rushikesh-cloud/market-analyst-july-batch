@@ -1,7 +1,7 @@
 FROM node:22.22-alpine AS frontend-build
 WORKDIR /frontend
-COPY frontend/package.json ./
-RUN npm install
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
 COPY frontend/ ./
 ARG VITE_CLERK_PUBLISHABLE_KEY
 ENV VITE_CLERK_PUBLISHABLE_KEY=${VITE_CLERK_PUBLISHABLE_KEY}
@@ -21,6 +21,8 @@ RUN uv sync --frozen --no-dev --no-install-project \
 COPY backend/app ./app
 COPY backend/migrations ./migrations
 COPY --from=frontend-build /frontend/dist ./static
-USER appuser
+# ACI Azure Files mounts require root; local builds retain the unprivileged user.
+ARG RUNTIME_USER=appuser
+USER ${RUNTIME_USER}
 EXPOSE 8000
 CMD ["/app/.venv/bin/uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -283,3 +283,41 @@ Read [execution and validation conventions](README.md) and [the master plan](../
 - Decimal half-up rounding occurs once; eligibility uses unrounded coverage.
   News retains responsibility for its event denominator. No live checks apply.
 - Next: C08 consumes this arithmetic after its remaining dependencies pass.
+
+## C04 handoff
+
+- Implementation commit: this commit.
+- Canonical NSE validation lives in `app/nse_tickers.py`; company input and legacy
+  output schemas are separate. Canonicalizable legacy collisions return 409;
+  records and documents remain intact. Shared request errors display validation
+  messages. `CompanyDialog.tsx` owns the focused editor and design.md is updated.
+- C04-01–C04-05: seven methods in `test_nse_tickers.py`; C04-03 PostgreSQL
+  concurrency/source-preservation test in `test_nse_postgres.py`; all passed.
+  Existing company suite also passed. C04-04 analysis submission guard is consumed
+  and exercised by C07; no existing symbols are inferred at analysis time.
+- C04-06: `tests/e2e/companies.spec.ts`, two Chromium scenarios passed; production
+  build passed. Playwright harness introduced here to validate C04 and reused by C09.
+  Only the separate test Vite config substitutes authentication; no production bypass.
+- Commands: `uv --directory backend run python -m unittest tests.test_nse_tickers`;
+  `ANALYSIS_TEST_POSTGRES=1 uv --directory backend run --env-file ../.env python
+  -m unittest tests.test_nse_postgres`; `npm --prefix frontend run test:e2e -- companies.spec.ts`;
+  `npm run build`.
+- No live Yahoo claim or market-data lookup is made by syntax validation.
+
+## C05 handoff
+
+- Implementation commit: this commit.
+- Added migration `006_analysis_foundation.sql`, analysis models/repository, and
+  temporary-schema PostgreSQL test support. Runs retain identity/model snapshots,
+  budgets, leases, evidence and artifact metadata. Partial unique index enforces
+  one active run per company/agent. Company deletion is blocked by history.
+- C05-01–C05-06 map to named methods in `test_analysis_persistence.py`; initial
+  full run: seven passed, no failures/skips. Additional forced-conflict and initial
+  upgrade preservation checks also passed in the coverage rerun.
+- Command: `ANALYSIS_TEST_POSTGRES=1 uv --directory backend run --env-file ../.env
+  python -m unittest tests.test_analysis_persistence -v`.
+- Tests use independent transactions inside generated schemas; qualified migration
+  metadata and namespace assertions prevent public-table fallback. Existing
+  pgvector extension is required and never created or removed by these tests.
+- Next: C06 adds immutable ledger validation and durable artifact bytes; C08 adds
+  claims, heartbeat and budget reservation. Coverage details follow the final run.

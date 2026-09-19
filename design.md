@@ -63,10 +63,14 @@ for dialogs. Controls are at least 36px tall; table rows approximately 68px.
 ## Companies contract
 
 Company name and Yahoo Finance ticker are required. Trim names and uppercase
-symbols. Symbols are unique, with exchange suffixes supported (RELIANCE.NS,
-7203.T), and punctuation such as BRK-B, ^GSPC, and EURUSD=X supported. Format
-validation does not imply verification against Yahoo Finance. Persist changes
-through the API; never use local browser storage as the system of record.
+symbols. New or edited tickers accept NSE equity symbols only: a bare symbol gains
+`.NS`; `RELIANCE.NS`, `M&M`, and `BAJAJ-AUTO.NS` are examples. Reject other exchange
+suffixes, indices, FX syntax, embedded spaces, and canonical symbols over 40
+characters. Canonical symbols are unique, including collisions with legacy bare
+symbols. Existing global/bare records remain readable; analysis requires an explicit
+correction and save. Never merge or silently relabel legacy companies. Format
+validation does not verify Yahoo availability. Preserve invalid form input and
+announce inline errors with a link to the field. Persist through the API.
 
 ## Documents contract
 

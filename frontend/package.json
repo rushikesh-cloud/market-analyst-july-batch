@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "test": "node --experimental-strip-types --test tests/*.test.mjs"
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@clerk/react": "^6.16.1",
@@ -21,6 +22,7 @@
     "vite": "^6.0.5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "typescript": "~5.7.2"

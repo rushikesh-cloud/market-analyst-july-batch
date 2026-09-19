@@ -10,6 +10,8 @@ from sqlalchemy import String, create_engine, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
 
+from app.nse_tickers import normalize_nse_ticker
+
 
 class Base(DeclarativeBase):
     pass
@@ -43,21 +45,38 @@ router = APIRouter(prefix="/api/companies", tags=["companies"])
 
 
 class CompanyInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     name: str = Field(min_length=1, max_length=200)
-    ticker: str = Field(min_length=1, max_length=40, pattern=r"^[A-Z0-9^][A-Z0-9.\-^=]*$")
+    ticker: str
 
-    @field_validator("name", "ticker", mode="before")
+    @field_validator("name", mode="before")
     @classmethod
-    def normalize(cls, value, info):
-        if isinstance(value, str):
-            value = value.strip()
-            return value.upper() if info.field_name == "ticker" else value
-        return value
+    def normalize_name(cls, value):
+        return value.strip() if isinstance(value, str) else value
+
+    @field_validator("ticker", mode="before")
+    @classmethod
+    def normalize_ticker(cls, value):
+        return normalize_nse_ticker(value)
 
 
-class CompanyOutput(CompanyInput):
+class CompanyOutput(BaseModel):
+    """Legacy symbols remain readable until the user explicitly corrects them."""
     model_config = ConfigDict(from_attributes=True)
     id: str
+    name: str
+    ticker: str
+
+
+def check_ticker_collision(session: Session, ticker: str, company_id: str):
+    # Include canonicalizable historical bare symbols; never rewrite records.
+    for existing in session.scalars(select(Company).where(Company.id != company_id)):
+        try:
+            canonical = normalize_nse_ticker(existing.ticker)
+        except ValueError:
+            continue
+        if canonical == ticker:
+            raise HTTPException(409, "This ticker is already configured.")
 
 
 @router.get("", response_model=list[CompanyOutput])
@@ -80,6 +99,7 @@ def save(session: Session, company: Company):
 def create_company(payload: CompanyInput):
     with Session(engine) as session:
         company = Company(id=str(uuid4()), **payload.model_dump())
+        check_ticker_collision(session, company.ticker, company.id)
         session.add(company)
         return save(session, company)
 
@@ -90,6 +110,7 @@ def update_company(company_id: str, payload: CompanyInput):
         company = session.get(Company, company_id)
         if company is None:
             raise HTTPException(404, "Company not found.")
+        check_ticker_collision(session, payload.ticker, company_id)
         company.name, company.ticker = payload.name, payload.ticker
         return save(session, company)
 
@@ -106,6 +127,17 @@ def delete_company(company_id: str):
             raise HTTPException(
                 409, "Delete this company's documents before deleting the company."
             )
+        if engine.dialect.name == "postgresql":
+            from app.analysis.models import AnalysisRun
+
+            if session.scalar(select(AnalysisRun.id).where(
+                AnalysisRun.company_id == company_id
+            ).limit(1)):
+                raise HTTPException(409, "Analysis history must be retained. This company cannot be deleted.")
         session.delete(company)
-        session.commit()
+        try:
+            session.commit()
+        except IntegrityError as error:
+            session.rollback()
+            raise HTTPException(409, "This company has retained records and cannot be deleted.") from error
         return Response(status_code=204)

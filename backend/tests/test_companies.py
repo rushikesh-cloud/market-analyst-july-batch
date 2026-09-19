@@ -39,7 +39,7 @@ class CompanyTests(unittest.TestCase):
         self.assertEqual(response.status_code, 201)
         company = response.json()
         self.assertEqual(company['name'], 'Microsoft')
-        self.assertEqual(company['ticker'], 'MSFT')
+        self.assertEqual(company['ticker'], 'MSFT.NS')
         self.engine.dispose()  # Force new database connections, preserving records.
         self.assertEqual(self.client.get('/api/companies').json(), [company])
         path = f"/api/companies/{company['id']}"
@@ -62,7 +62,7 @@ class CompanyTests(unittest.TestCase):
         for name, ticker in [(' ', 'MSFT'), ('A' * 201, 'A'), ('Name', ''), ('Name', 'bad ticker'), ('Name', '<script>'), ('Name', 'A' * 41)]:
             with self.subTest(name=name, ticker=ticker):
                 self.assertEqual(self.add(name, ticker).status_code, 422)
-        for ticker in ['BRK-B', '^GSPC', 'EURUSD=X', '7203.T']:
+        for ticker in ['BRK-B', 'M&M', 'BAJAJ-AUTO.NS']:
             with self.subTest(ticker=ticker):
                 self.assertEqual(self.add(ticker, ticker).status_code, 201)
 

@@ -25,11 +25,15 @@ export async function apiRequest<T>(
   if (!response.ok) {
     if (response.status === 401) throw new Error('Your session has expired. Please sign in again.')
     const body = await response.json().catch(() => ({}))
-    throw new Error(
-      typeof body.detail === 'string'
-        ? body.detail
-        : 'Unable to save changes. Check the fields and try again.',
-    )
+    const detail = body.detail
+    const message = typeof detail === 'string'
+      ? detail
+      : typeof detail?.message === 'string'
+        ? detail.message
+        : Array.isArray(detail)
+          ? detail.map((item: { msg?: string }) => item.msg).filter(Boolean).join(' ')
+          : ''
+    throw new Error(message || 'Unable to save changes. Check the fields and try again.')
   }
   return response.status === 204 ? (undefined as T) : response.json()
 }

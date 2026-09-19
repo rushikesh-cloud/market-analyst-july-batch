@@ -2,6 +2,10 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from '../../src/App'
+import { WorkspaceUserContext } from '../../src/workspace-user'
 import '../../src/styles.css'
 
-createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>)
+const role = new URLSearchParams(window.location.search).get('role') === 'general' ? 'general' : 'admin'
+createRoot(document.getElementById('root')!).render(
+  <StrictMode><WorkspaceUserContext.Provider value={{ user_id: 'synthetic', role }}><App /></WorkspaceUserContext.Provider></StrictMode>,
+)

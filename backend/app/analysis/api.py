@@ -4,10 +4,11 @@ from contextlib import contextmanager
 
 from fastapi import APIRouter, HTTPException, Query, Response
 from pydantic import ValidationError
+from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.companies import Company, engine
+from app.companies import Company, CompanyOutput, engine
 from app.nse_tickers import is_canonical_nse_ticker
 from .api_contracts import (
     AgentAvailability, AvailableAgents, RunHistory, RunResponse, StartRun, run_response,
@@ -58,6 +59,13 @@ def company_snapshot(company_id: str) -> CompanySnapshot:
         if company is None:
             raise HTTPException(404, 'Company not found.')
         return CompanySnapshot(id=company.id, name=company.name, ticker=company.ticker)
+
+
+@router.get('/analysis/companies', response_model=list[CompanyOutput])
+def analysis_companies():
+    """Read-only company choices for analysis, available to both workspace roles."""
+    with safe_errors(), Session(engine) as session:
+        return session.scalars(select(Company).order_by(Company.name, Company.id)).all()
 
 
 @router.get('/analysis-agents', response_model=AvailableAgents)

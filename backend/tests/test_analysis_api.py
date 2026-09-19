@@ -94,7 +94,7 @@ class AnalysisApiPostgresTests(unittest.TestCase):
         for item in (
             patch.object(api,'engine',self.engine),patch.object(companies,'engine',self.engine),
             patch.object(api,'registry',self.registry),patch.object(api,'resolve_configuration',return_value=MODEL),
-            patch.dict(main.app.dependency_overrides,{require_workspace_access:lambda:AuthenticatedUser('test','test')}),
+            patch.dict(main.app.dependency_overrides,{require_workspace_access:lambda:AuthenticatedUser('test','test','admin')}),
         ):
             item.start();self.addCleanup(item.stop)
         self.path=f'/api/companies/{self.company.id}/analysis-runs'

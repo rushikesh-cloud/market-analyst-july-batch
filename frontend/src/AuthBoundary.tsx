@@ -2,6 +2,7 @@ import { SignInButton, SignUpButton, UserButton, useAuth } from '@clerk/react'
 import { ChartNoAxesCombined } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { useApiRequest } from './use-api-request'
+import { WorkspaceUserContext, type WorkspaceUser } from './workspace-user'
 
 export function AuthScreen({ children }: { children: ReactNode }) {
   return (
@@ -17,20 +18,23 @@ export function AuthScreen({ children }: { children: ReactNode }) {
 
 function WorkspaceAccess({ children }: { children: ReactNode }) {
   const apiRequest = useApiRequest()
-  const [allowed, setAllowed] = useState(false)
+  const [user, setUser] = useState<WorkspaceUser | null>(null)
   const [error, setError] = useState('')
   const [attempt, setAttempt] = useState(0)
   useEffect(() => {
     let active = true
     setError('')
-    void apiRequest('/api/auth/me').then(() => {
-      if (active) setAllowed(true)
+    void apiRequest<WorkspaceUser>('/api/auth/me').then((verified) => {
+      if (verified.role !== 'admin' && verified.role !== 'general') {
+        throw new Error('Unable to verify workspace access. Please retry.')
+      }
+      if (active) setUser(verified)
     }).catch((reason: Error) => {
       if (active) setError(reason.message)
     })
     return () => { active = false }
   }, [apiRequest, attempt])
-  if (allowed) return children
+  if (user) return <WorkspaceUserContext.Provider value={user}>{children}</WorkspaceUserContext.Provider>
   return (
     <AuthScreen>
       {error ? <>

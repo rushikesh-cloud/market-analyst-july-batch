@@ -41,7 +41,7 @@ class DocumentQueueIsolationTests(unittest.TestCase):
         migration.start()
         self.addCleanup(migration.stop)
         auth_override = patch.dict(main.app.dependency_overrides, {
-            require_workspace_access: lambda: AuthenticatedUser('user_test', 'sess_test'),
+            require_workspace_access: lambda: AuthenticatedUser('user_test', 'sess_test', 'admin'),
         })
         auth_override.start()
         self.addCleanup(auth_override.stop)

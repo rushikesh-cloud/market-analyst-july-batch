@@ -22,7 +22,7 @@ class SearchApiTests(unittest.TestCase):
         self.engine = create_engine(f"sqlite:///{self.directory.name}/search.db")
         companies.Base.metadata.create_all(self.engine)
         auth_override = patch.dict(app.dependency_overrides, {
-            require_workspace_access: lambda: AuthenticatedUser('user_test', 'sess_test'),
+            require_workspace_access: lambda: AuthenticatedUser('user_test', 'sess_test', 'admin'),
         })
         auth_override.start()
         self.addCleanup(auth_override.stop)
@@ -108,7 +108,7 @@ class PostgresSearchTests(unittest.TestCase):
         for item in self.patches:
             item.start()
         auth_override = patch.dict(app.dependency_overrides, {
-            require_workspace_access: lambda: AuthenticatedUser('user_test', 'sess_test'),
+            require_workspace_access: lambda: AuthenticatedUser('user_test', 'sess_test', 'admin'),
         })
         auth_override.start()
         self.addCleanup(auth_override.stop)

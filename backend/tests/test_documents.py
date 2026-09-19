@@ -28,7 +28,7 @@ class DocumentApiTests(unittest.TestCase):
         for item in self.patches:
             item.start()
         auth_override = patch.dict(app.dependency_overrides, {
-            require_workspace_access: lambda: AuthenticatedUser('user_test', 'sess_test'),
+            require_workspace_access: lambda: AuthenticatedUser('user_test', 'sess_test', 'admin'),
         })
         auth_override.start()
         self.addCleanup(auth_override.stop)
@@ -151,7 +151,7 @@ class WorkerTests(unittest.TestCase):
         for item in self.patches:
             item.start()
         auth_override = patch.dict(app.dependency_overrides, {
-            require_workspace_access: lambda: AuthenticatedUser('user_test', 'sess_test'),
+            require_workspace_access: lambda: AuthenticatedUser('user_test', 'sess_test', 'admin'),
         })
         auth_override.start()
         self.addCleanup(auth_override.stop)

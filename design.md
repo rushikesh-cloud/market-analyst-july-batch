@@ -120,8 +120,9 @@ announce inline errors with a link to the field. Persist through the API.
 - Evidence text renders as plain text. Source links allow HTTP(S) only. Artifact
   download buttons fetch registered IDs through the authenticated API; never
   expose storage paths or embed credentials in URLs.
-- Empty companies link to Add company. Failed reads offer Retry; ticker errors
-  offer Correct ticker. Preserve the selected context after a failed submission.
+- Empty companies offer admins Add company; ticker errors offer admins Correct
+  ticker. General users receive guidance to contact an administrator instead.
+  Failed reads offer Retry. Preserve the selected context after a failed submission.
 - Stack and wrap controls on small screens. Parameter tables scroll inside an
   accessible, keyboard-focusable region without widening the page. Use the
   existing colors, type scale, borders, and spacing; no new design tokens.
@@ -135,6 +136,11 @@ announce inline errors with a link to the field. Persist through the API.
 - Mount workspace pages only after session loading and API access verification.
   Show loading, unavailable, and access-pending states with Retry where appropriate.
 - Signing out or switching sessions clears mounted workspace state.
+- Admins see Companies, Documents, and Agentic Analysis. General users see only
+  Agentic Analysis and land there, including when opening a Companies or Documents
+  URL. The brand home link follows the user's default page. Roles come from the API.
+- Company management, documents, uploads, and document search require admin access
+  on the server. Both roles can select companies and run/view analysis and evidence.
 
 ## Accessibility and behavior
 

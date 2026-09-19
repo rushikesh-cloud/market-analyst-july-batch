@@ -17,7 +17,7 @@ function savedSelection(): { companyId: string; agent: AgentType } {
   } catch { return { companyId: '', agent: 'fundamental' } }
 }
 
-export default function AnalysisPage({ request: injectedRequest }: { request?: AnalysisRequest }) {
+export default function AnalysisPage({ request: injectedRequest, isAdmin = false }: { request?: AnalysisRequest; isAdmin?: boolean }) {
   const authenticatedRequest = useApiRequest()
   const request = injectedRequest ?? authenticatedRequest
   const [companies, setCompanies] = useState<Company[]>([])
@@ -43,7 +43,7 @@ export default function AnalysisPage({ request: injectedRequest }: { request?: A
     setLoading(true)
     setError('')
     void Promise.all([
-      request<Company[]>('/api/companies', { signal: controller.signal }),
+      request<Company[]>('/api/analysis/companies', { signal: controller.signal }),
       request<{ items: AgentAvailability[] }>('/api/analysis-agents', { signal: controller.signal }),
     ]).then(([items, capabilities]) => {
       if (controller.signal.aborted) return
@@ -81,7 +81,10 @@ export default function AnalysisPage({ request: injectedRequest }: { request?: A
     </div>
     {error && <div className="analysis-error"><p role="alert" className="error">{error}</p><button className="button secondary" onClick={() => setRevision((value) => value + 1)}>Retry</button></div>}
     {loading && <p>Loading companies and agents…</p>}
-    {!loading && !error && !companies.length && <section className="panel empty"><h2>No companies</h2><p>Add a company to start analysis.</p><a className="button secondary" href="#companies">Add company</a></section>}
+    {!loading && !error && !companies.length && <section className="panel empty"><h2>No companies</h2>
+      {isAdmin ? <><p>Add a company to start analysis.</p><a className="button secondary" href="#companies">Add company</a></>
+        : <p>Ask an administrator to add a company before running analysis.</p>}
+    </section>}
     {companies.length > 0 && <>
       <section className="panel analysis-controls" aria-label="Analysis selection">
         <div className="field"><label htmlFor="analysis-company">Company</label>
@@ -101,7 +104,9 @@ export default function AnalysisPage({ request: injectedRequest }: { request?: A
         </div>}
         <AnalysisRunStatus run={history.active ?? history.latest} />
         {history.error && <div className="analysis-error"><p className="error" role="alert">{history.error.message}</p>
-          {history.errorCode === 'ticker_correction_required' ? <a className="button secondary" href="#companies">Correct ticker</a>
+          {history.errorCode === 'ticker_correction_required' ? (isAdmin
+            ? <a className="button secondary" href="#companies">Correct ticker</a>
+            : <p>Ask an administrator to correct this company’s ticker.</p>)
             : <button className="button secondary" onClick={history.retry}>Retry</button>}
         </div>}
         {runError && <div className="analysis-error"><p className="error">{runError.message}</p><p>Use Run analysis to try again.</p></div>}

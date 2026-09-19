@@ -3,7 +3,7 @@
 import os
 from dataclasses import dataclass
 from functools import lru_cache
-from typing import Annotated
+from typing import Annotated, Literal
 from urllib.parse import urlsplit
 
 import jwt
@@ -25,6 +25,7 @@ def authorized_parties() -> list[str]:
 class AuthenticatedUser:
     user_id: str
     session_id: str
+    role: Literal['admin', 'general'] = 'general'
 
 
 @lru_cache(maxsize=4)
@@ -73,10 +74,19 @@ def require_user(
 def require_workspace_access(
     user: Annotated[AuthenticatedUser, Depends(require_user)],
 ) -> AuthenticatedUser:
-    mode = os.getenv('CLERK_ACCESS_MODE', 'approved_users')
+    mode = os.getenv('CLERK_ACCESS_MODE', 'all_signed_in')
+    admins = {value.strip() for value in os.getenv('CLERK_ADMIN_USER_IDS', '').split(',') if value.strip()}
     approved = {value.strip() for value in os.getenv('CLERK_ALLOWED_USER_IDS', '').split(',') if value.strip()}
-    if mode == 'all_signed_in' or (mode == 'approved_users' and user.user_id in approved):
-        return user
+    if mode == 'all_signed_in' or (mode == 'approved_users' and user.user_id in approved | admins):
+        return AuthenticatedUser(user.user_id, user.session_id, 'admin' if user.user_id in admins else 'general')
     if mode != 'approved_users':
         raise HTTPException(status_code=503, detail='Workspace access is not configured.')
     raise HTTPException(status_code=403, detail='Your account is awaiting workspace access. Contact your administrator.')
+
+
+def require_admin(
+    user: Annotated[AuthenticatedUser, Depends(require_workspace_access)],
+) -> AuthenticatedUser:
+    if user.role != 'admin':
+        raise HTTPException(status_code=403, detail='Administrator access is required.')
+    return user

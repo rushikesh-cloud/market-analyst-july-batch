@@ -3,9 +3,17 @@
 React uses `@clerk/react` for sign-up, sign-in, sessions, and account management.
 FastAPI verifies Clerk session JWTs using PyJWT and the instance's public JWKS.
 The linked Clerk application is `app_3JX4rhmpow8eJkiC94QCMnwlJGf` (Market Analyst).
-The application remains a shared research workspace: approved users have the same
-read and write access to existing companies and documents. There is no per-user or
-organization data isolation in this integration.
+The application has two server-assigned roles:
+
+- **Admin:** Companies, Documents (including upload and search), and Agentic Analysis.
+- **General:** Agentic Analysis only, including company selection, run submission,
+  history, results, and evidence/artifact downloads.
+
+New signed-in accounts are general users by default. Admin IDs are configured in
+`CLERK_ADMIN_USER_IDS`; matching an email address or sending a role in client
+metadata never grants admin access. The existing account is configured as admin in
+the local ignored `.env`. Analysis remains shared across workspace users; this
+change does not add per-user or organization data isolation.
 
 ## Local setup
 
@@ -21,17 +29,21 @@ organization data isolation in this integration.
    a full backend restart; Uvicorn source reload does not reload uv's environment file.
 6. Visit http://localhost:5173 and select **Sign up**. Clerk controls the configured
    identifiers, social providers, and verification requirements.
-7. With the default access policy, a new account sees an access-pending message.
-   Copy its `user_...` ID from the Clerk Dashboard into the root `.env`:
-   `CLERK_ALLOWED_USER_IDS=user_first,user_second`. Restart the backend, then select
-   **Retry**. The header profile button provides account management and **Sign out**.
+7. New users land on **Agentic Analysis**. To grant administration, add the verified
+   Clerk `user_...` ID to `CLERK_ADMIN_USER_IDS` in the root `.env` and restart the
+   backend. Refresh the browser to load the new role. The header profile button
+   provides account management and **Sign out**.
 8. Run `clerk doctor` from `frontend` to check the linked development instance.
 
-`CLERK_ACCESS_MODE=approved_users` is the default. Setting it to `all_signed_in`
-explicitly gives **every account that signs up** access to all workspace records and
-mutations. Unknown modes fail closed. Approval is based on verified Clerk user IDs,
-not client-supplied email addresses or profile metadata. User approval and revocation
-currently require server configuration and restart.
+`CLERK_ACCESS_MODE=all_signed_in` is the default and is configured locally. All
+signed-in users can access analysis, while only `CLERK_ADMIN_USER_IDS` can access
+management routes. Admin promotion and revocation require configuration and a full
+backend restart. Every API request enforces the current server role; refreshing
+the browser updates the navigation.
+
+For an invitation-only workspace, set `CLERK_ACCESS_MODE=approved_users` and list
+general users in `CLERK_ALLOWED_USER_IDS`. Configured admins retain access in that
+mode without needing a second allowlist entry. Unknown modes fail closed.
 
 The backend uses public signing keys and does not require `CLERK_SECRET_KEY`.
 The CLI may write that key locally; keep it in ignored environment files and never
@@ -39,8 +51,11 @@ prefix it with `VITE_`. Only the publishable key belongs in a client build.
 
 ## API behavior
 
-All company, document, upload, ingestion-status, retry, content, chunk, and search
-routes require a Clerk session bearer token. The React request hook obtains a
+Every workspace API requires a Clerk session bearer token. Company management,
+document, upload, ingestion-status, retry, content, chunk, and document-search
+routes additionally require admin access. `GET /api/analysis/companies` is the
+read-only company selector available to both roles. The analysis routes, including
+`/api/companies/{company_id}/analysis-runs`, are available to both roles. The React request hook obtains a
 current token with `useAuth().getToken()` for each request, including uploads and
 polling. It never stores tokens in local storage. API requests cannot follow
 redirects with credentials.
@@ -52,9 +67,10 @@ ID. Pending organization sessions are rejected. The default allowed origins are
 `CLERK_AUTHORIZED_PARTIES` as a comma-separated list for other origins. This list
 also configures CORS. Cookie-only requests are not accepted by the backend.
 
-- `GET /api/auth/me` returns the approved user's verified `user_id`.
+- `GET /api/auth/me` returns the user's verified `user_id` and `role` (`admin` or `general`).
 - Missing or invalid sessions return `401` with a Bearer challenge.
-- Accounts awaiting approval return `403`.
+- General users requesting management routes return `403`. Accounts awaiting
+  approval in invitation-only mode also return `403`.
 - Missing configuration or unavailable signing keys return `503`.
 - `GET /api/health` and CORS preflight remain public.
 
@@ -67,7 +83,7 @@ every request, so an already issued token may remain valid until its expiry.
 
 Create/configure a production instance of the same Clerk application and use its
 publishable key and issuer. Set the exact deployed frontend origin in
-`CLERK_AUTHORIZED_PARTIES` and configure the approved users. The development CLI
+`CLERK_AUTHORIZED_PARTIES` and configure `CLERK_ADMIN_USER_IDS`. The development CLI
 link and ignored keys are local machine state, not deployment configuration.
 
 Vite embeds `VITE_CLERK_PUBLISHABLE_KEY` at build time. Supply it when running

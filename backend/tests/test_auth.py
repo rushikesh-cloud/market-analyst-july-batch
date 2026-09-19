@@ -25,6 +25,7 @@ class AuthenticationTests(unittest.TestCase):
             'CLERK_AUTHORIZED_PARTIES': 'http://localhost:5173',
             'CLERK_ACCESS_MODE': 'approved_users',
             'CLERK_ALLOWED_USER_IDS': 'user_test',
+            'CLERK_ADMIN_USER_IDS': '',
         })
         env.start()
         self.addCleanup(env.stop)
@@ -62,7 +63,7 @@ class AuthenticationTests(unittest.TestCase):
     def test_valid_session_returns_verified_identity(self):
         response = self.get_me(self.token())
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {'user_id': 'user_test'})
+        self.assertEqual(response.json(), {'user_id': 'user_test', 'role': 'general'})
 
     def test_rejects_expired_premature_foreign_or_pending_sessions(self):
         now = int(time.time())
@@ -127,3 +128,89 @@ class AuthenticationTests(unittest.TestCase):
             'Origin': 'https://attacker.example', 'Access-Control-Request-Method': 'POST',
         })
         self.assertNotIn('access-control-allow-origin', response.headers)
+
+
+    def test_roles_are_assigned_by_server_not_token_claims(self):
+        with patch.dict('os.environ', {'CLERK_ADMIN_USER_IDS': 'user_admin', 'CLERK_ACCESS_MODE': 'all_signed_in'}):
+            self.assertEqual(self.get_me(self.token(sub='user_admin')).json(),
+                             {'user_id': 'user_admin', 'role': 'admin'})
+            self.assertEqual(self.get_me(self.token(role='admin', public_metadata={'role': 'admin'})).json(),
+                             {'user_id': 'user_test', 'role': 'general'})
+            self.assertEqual(self.get_me(self.token(sub='user_new')).json()['role'], 'general')
+
+    def test_general_user_cannot_access_any_management_route(self):
+        from app.companies import router as companies
+        from app.documents import router as documents
+        from app.document_search import router as search
+        headers = {'Authorization': f'Bearer {self.token(role="admin")}', 'X-Role': 'admin'}
+        for router in [companies, documents, search]:
+            for route in router.routes:
+                path = route.path.replace('{company_id}', 'missing').replace('{document_id}', 'missing')
+                for method in route.methods:
+                    with self.subTest(path=path, method=method):
+                        response = self.client.request(method, path, headers=headers)
+                        self.assertEqual(response.status_code, 403, response.text)
+
+    def test_admin_can_manage_companies_and_general_user_can_select_them(self):
+        import tempfile
+        from sqlalchemy import create_engine
+        from app import companies
+        from app.analysis import api
+        with tempfile.TemporaryDirectory() as folder:
+            engine = create_engine(f'sqlite:///{folder}/roles.db')
+            companies.Base.metadata.create_all(engine)
+            self.addCleanup(engine.dispose)
+            with patch.object(companies, 'engine', engine), patch.object(api, 'engine', engine), patch.dict(
+                'os.environ', {'CLERK_ADMIN_USER_IDS': 'user_admin', 'CLERK_ACCESS_MODE': 'all_signed_in'}
+            ):
+                admin_headers = {'Authorization': f'Bearer {self.token(sub="user_admin")}'}
+                response = self.client.post('/api/companies', json={'name': 'Reliance', 'ticker': 'RELIANCE'}, headers=admin_headers)
+                self.assertEqual(response.status_code, 201, response.text)
+                company = response.json()
+                general_headers = {'Authorization': f'Bearer {self.token()}'}
+                response = self.client.get('/api/analysis/companies', headers=general_headers)
+                self.assertEqual(response.status_code, 200, response.text)
+                self.assertEqual(response.json(), [company])
+                self.assertEqual(self.client.get('/api/companies', headers=admin_headers).json(), [company])
+                self.assertEqual(self.client.get('/api/analysis-agents', headers=general_headers).status_code, 200)
+                self.assertEqual(self.client.post('/api/analysis/companies', json={'name': 'Bypass', 'ticker': 'BYPASS'}, headers=general_headers).status_code, 405)
+
+    def test_admin_revocation_takes_effect_on_existing_session(self):
+        headers = {'Authorization': f'Bearer {self.token()}'}
+        with patch.dict('os.environ', {'CLERK_ADMIN_USER_IDS': 'user_test'}):
+            self.assertEqual(self.get_me(self.token()).json()['role'], 'admin')
+        self.assertEqual(self.client.get('/api/companies', headers=headers).status_code, 403)
+
+    def test_general_user_can_submit_and_read_analysis_and_artifacts(self):
+        from contextlib import ExitStack
+        from datetime import datetime, timezone
+        from app.analysis import api
+        from app.analysis.contracts import CompanySnapshot
+        company = CompanySnapshot(id='company', name='Reliance', ticker='RELIANCE.NS')
+        run = SimpleNamespace(
+            id='run', company_id='company', company_snapshot=company,
+            agent_type='fundamental', status='queued', created_at=datetime.now(timezone.utc),
+            started_at=None, finished_at=None, as_of=None, progress={}, result=None, error=None,
+        )
+        headers = {'Authorization': f'Bearer {self.token()}'}
+        with ExitStack() as stack:
+            stack.enter_context(patch.object(api, 'require_postgres'))
+            stack.enter_context(patch.object(api, 'company_snapshot', return_value=company))
+            stack.enter_context(patch.object(api, 'find_active_run', return_value=None))
+            stack.enter_context(patch.object(api, 'registry'))
+            stack.enter_context(patch.object(api, 'resolve_configuration'))
+            enqueue = stack.enter_context(patch.object(api, 'enqueue_run', return_value=run))
+            stack.enter_context(patch.object(api, 'list_runs', return_value=[run]))
+            stack.enter_context(patch.object(api, 'get_run', return_value=run))
+            store = stack.enter_context(patch.object(api, 'ArtifactStore'))
+            store.return_value.read.return_value = SimpleNamespace(
+                data=b'analysis evidence', metadata=SimpleNamespace(mime_type='text/plain', id='evidence.txt'),
+            )
+            response = self.client.post('/api/companies/company/analysis-runs', json={'agent_type': 'fundamental'}, headers=headers)
+            self.assertEqual(response.status_code, 202, response.text)
+            enqueue.assert_called_once()
+            self.assertEqual(self.client.get('/api/companies/company/analysis-runs', headers=headers).json()['items'][0]['id'], 'run')
+            self.assertEqual(self.client.get('/api/analysis-runs/run', headers=headers).json()['id'], 'run')
+            response = self.client.get('/api/analysis-runs/run/artifacts/evidence', headers=headers)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.content, b'analysis evidence')

@@ -19,7 +19,7 @@ class CompanyTests(unittest.TestCase):
         self.override = patch.object(companies, "engine", self.engine)
         self.override.start()
         auth_override = patch.dict(app.dependency_overrides, {
-            require_workspace_access: lambda: AuthenticatedUser('user_test', 'sess_test'),
+            require_workspace_access: lambda: AuthenticatedUser('user_test', 'sess_test', 'admin'),
         })
         auth_override.start()
         self.addCleanup(auth_override.stop)

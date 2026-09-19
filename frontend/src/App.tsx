@@ -4,6 +4,7 @@ import { Building2, ChartNoAxesCombined, ChevronRight, Files, Workflow, type Luc
 import Companies from './Companies'
 import Documents from './Documents'
 import AnalysisPage from './AnalysisPage'
+import { useWorkspaceUser } from './workspace-user'
 
 type Page = 'companies' | 'documents' | 'analysis'
 const pages: { id: Page; label: string; icon: LucideIcon }[] = [
@@ -11,18 +12,29 @@ const pages: { id: Page; label: string; icon: LucideIcon }[] = [
   { id: 'documents', label: 'Documents', icon: Files },
   { id: 'analysis', label: 'Agentic Analysis', icon: Workflow },
 ]
-function currentPage(): Page {
+function currentPage(isAdmin: boolean): Page {
   const page = window.location.hash.slice(1)
+  if (!isAdmin) return 'analysis'
   return pages.some(({ id }) => id === page) ? (page as Page) : 'companies'
 }
 
 export default function App() {
-  const [page, setPage] = useState<Page>(currentPage)
+  const { role } = useWorkspaceUser()
+  const isAdmin = role === 'admin'
+  const visiblePages = isAdmin ? pages : pages.filter(({ id }) => id === 'analysis')
+  const [requestedPage, setPage] = useState<Page>(() => currentPage(isAdmin))
+  const page = isAdmin ? requestedPage : 'analysis'
   useEffect(() => {
-    const update = () => setPage(currentPage())
+    const update = () => {
+      setPage(currentPage(isAdmin))
+      if (!isAdmin && window.location.hash !== '#analysis') {
+        window.history.replaceState(null, '', '#analysis')
+      }
+    }
+    update()
     window.addEventListener('hashchange', update)
     return () => window.removeEventListener('hashchange', update)
-  }, [])
+  }, [isAdmin])
   const active = pages.find(({ id }) => id === page)!
   return (
     <div className="app-shell">
@@ -37,7 +49,7 @@ export default function App() {
         Skip to content
       </a>
       <aside className="sidebar">
-        <a className="brand" href="#companies" aria-label="Market Analyst home">
+        <a className="brand" href={isAdmin ? '#companies' : '#analysis'} aria-label="Market Analyst home">
           <span className="brand-mark">
             <ChartNoAxesCombined size={22} />
           </span>
@@ -48,7 +60,7 @@ export default function App() {
         </a>
         <div className="nav-caption">WORKSPACE</div>
         <nav aria-label="Main navigation">
-          {pages.map(({ id, label, icon: Icon }) => (
+          {visiblePages.map(({ id, label, icon: Icon }) => (
             <a
               key={id}
               href={`#${id}`}
@@ -84,7 +96,7 @@ export default function App() {
           ) : page === 'documents' ? (
             <Documents />
           ) : (
-            <AnalysisPage />
+            <AnalysisPage isAdmin={isAdmin} />
           )}
         </main>
       </div>

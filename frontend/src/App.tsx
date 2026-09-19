@@ -1,19 +1,17 @@
-import { Children, useCallback, useEffect, useRef, useState, type ComponentPropsWithoutRef, type FormEvent, type ReactNode } from 'react'
-import ReactMarkdown from 'react-markdown'
-import rehypeRaw from 'rehype-raw'
-import rehypeSanitize from 'rehype-sanitize'
+import { apiRequest } from './api-request'
+import DocumentDetail from './DocumentDetail'
+import { StatusBadge, formatDate } from './document-format'
+import type { Report } from './document-types'
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import {
   Building2,
   ChartNoAxesCombined,
   Check,
-  ChevronLeft,
   ChevronRight,
   CircleAlert,
-  Clock3,
   Eye,
   Files,
   FileText,
-  LoaderCircle,
   Pencil,
   Plus,
   Search,
@@ -24,51 +22,6 @@ import {
 } from 'lucide-react'
 
 type Company = { id: string; name: string; ticker: string }
-type Report = {
-  id: string; company_id: string; company: Company; fiscal_year: number
-  filename: string; storage_path: string; status: string
-  created_at: string; updated_at: string
-}
-type Stage = {
-  name: string; status: string; completed_items: number | null
-  total_items: number | null; started_at: string | null
-  finished_at: string | null; error: string | null
-}
-type ReportStatus = { document_id: string; status: string; attempt: number; error: string | null; stages: Stage[] }
-type Chunk = {
-  id: string; sequence: number; page_number: number; chunk_type: string; heading_path: string[]
-  content: string; overlap_text: string; token_count: number
-}
-type MarkdownPage = { markdown: string; page: number; page_count: number }
-function cleanTableWhitespace(markdown: string) {
-  return markdown.replace(/<table\b[\s\S]*?<\/table>/gi, (table) =>
-    table.replace(/>\s+</g, '><'),
-  )
-}
-function withoutTableText(children: ReactNode) {
-  return Children.toArray(children).filter(
-    (child) => typeof child !== 'string',
-  )
-}
-function SafeTable({ children, ...props }: ComponentPropsWithoutRef<'table'>) {
-  return <table {...props}>{withoutTableText(children)}</table>
-}
-function SafeTableHead({ children, ...props }: ComponentPropsWithoutRef<'thead'>) {
-  return <thead {...props}>{withoutTableText(children)}</thead>
-}
-function SafeTableBody({ children, ...props }: ComponentPropsWithoutRef<'tbody'>) {
-  return <tbody {...props}>{withoutTableText(children)}</tbody>
-}
-function SafeTableRow({ children, ...props }: ComponentPropsWithoutRef<'tr'>) {
-  return <tr {...props}>{withoutTableText(children)}</tr>
-}
-const markdownComponents = {
-  table: SafeTable,
-  thead: SafeTableHead,
-  tbody: SafeTableBody,
-  tfoot: SafeTableBody,
-  tr: SafeTableRow,
-}
 type Page = 'companies' | 'documents' | 'analysis'
 const pages: { id: Page; label: string; icon: LucideIcon }[] = [
   { id: 'companies', label: 'Companies', icon: Building2 },
@@ -84,27 +37,6 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return apiRequest<T>(`/api/companies${path}`, options)
 }
 
-async function apiRequest<T>(path: string, options?: RequestInit): Promise<T> {
-  let response: Response
-  try {
-    const isForm = options?.body instanceof FormData
-    response = await fetch(path, {
-      ...options,
-      headers: { ...(isForm ? {} : { 'Content-Type': 'application/json' }), ...options?.headers },
-    })
-  } catch {
-    throw new Error('Unable to connect. Please try again.')
-  }
-  if (!response.ok) {
-    const body = await response.json().catch(() => ({}))
-    throw new Error(
-      typeof body.detail === 'string'
-        ? body.detail
-        : 'Unable to save changes. Check the fields and try again.',
-    )
-  }
-  return response.status === 204 ? (undefined as T) : response.json()
-}
 
 export default function App() {
   const [page, setPage] = useState<Page>(currentPage)
@@ -469,13 +401,6 @@ function Documents() {
   </div>
 }
 
-function StatusBadge({ status }: { status: string }) {
-  return <span className={`status-badge status-${status}`}><span aria-hidden="true" />{status[0].toUpperCase() + status.slice(1)}</span>
-}
-
-function formatDate(value: string | null) {
-  return value ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '—'
-}
 
 function UploadDocumentDialog({ companies, onClose, onUploaded }: { companies: Company[]; onClose: () => void; onUploaded: (report: Report) => void }) {
   const [companyId, setCompanyId] = useState(companies[0]?.id ?? '')
@@ -507,50 +432,6 @@ function DeleteDocumentDialog({ report, onClose, onDeleted }: { report: Report; 
   return <dialog {...dialog} aria-labelledby="delete-document-title"><div className="dialog-heading"><h2 id="delete-document-title">Delete document?</h2><button className="icon-button" onClick={onClose} disabled={busy} aria-label="Close dialog"><X size={20} /></button></div><div className="dialog-body"><p>Delete <strong>{report.filename}</strong> for {report.company.name}, fiscal year {report.fiscal_year}? Its file, extracted content, chunks, and ingestion history will be removed.</p>{error && <p className="error" role="alert">{error}</p>}</div><div className="dialog-footer"><button data-initial-focus className="button secondary" onClick={onClose} disabled={busy}>Cancel</button><button className="button danger" onClick={() => void remove()} disabled={busy}><Trash2 size={16} />{busy ? 'Deleting…' : 'Delete document'}</button></div></dialog>
 }
 
-function DocumentDetail({ report, onBack }: { report: Report; onBack: () => void }) {
-  const [tab, setTab] = useState<'status' | 'content'>('status')
-  const [status, setStatus] = useState<ReportStatus | null>(null)
-  const [markdown, setMarkdown] = useState(''); const [chunks, setChunks] = useState<Chunk[]>([])
-  const [error, setError] = useState(''); const [retrying, setRetrying] = useState(false)
-  const [pollKey, setPollKey] = useState(0)
-  const [page, setPage] = useState(1); const [pageCount, setPageCount] = useState(1)
-  const [pageInput, setPageInput] = useState('1'); const [contentLoading, setContentLoading] = useState(false)
-  const loadStatus = useCallback(async () => { try { const value = await apiRequest<ReportStatus>(`/api/documents/${report.id}/status`); setStatus(value); setError(''); return value } catch (reason) { setError((reason as Error).message); return null } }, [report.id])
-  useEffect(() => { let cancelled = false; let timer = 0; let delay = 3000
-    const poll = async () => { const value = await loadStatus(); if (cancelled) return; if (!value) { delay = Math.min(delay * 2, 30000); timer = window.setTimeout(poll, delay); return } if (['complete', 'failed'].includes(value.status)) return; delay = 3000; timer = window.setTimeout(poll, delay) }
-    void poll(); return () => { cancelled = true; window.clearTimeout(timer) }
-  }, [loadStatus, pollKey])
-  const contentAvailable = status?.stages.some(({ name, status: stageStatus }) => name === 'parse' && stageStatus === 'complete') ?? false
-  useEffect(() => { if (contentAvailable) setTab('content') }, [contentAvailable])
-  useEffect(() => {
-    if (tab !== 'content' || !contentAvailable) return
-    let cancelled = false
-    setContentLoading(true)
-    Promise.all([
-      apiRequest<MarkdownPage>(`/api/documents/${report.id}/content?page=${page}`),
-      apiRequest<{ items: Chunk[] }>(`/api/documents/${report.id}/chunks?page=${page}&limit=500`),
-    ]).then(([content, chunkPage]) => {
-      if (cancelled) return
-      setMarkdown(content.markdown); setPageCount(content.page_count); setChunks(chunkPage.items); setError('')
-    }).catch((reason) => { if (!cancelled) setError((reason as Error).message) })
-      .finally(() => { if (!cancelled) setContentLoading(false) })
-    return () => { cancelled = true }
-  }, [tab, contentAvailable, page, report.id, status?.status])
-  useEffect(() => { setPageInput(String(page)) }, [page])
-  function goToPage(value: number) { setPage(Math.min(Math.max(value, 1), pageCount)) }
-  function applyPageInput() { const value = Number(pageInput); if (Number.isInteger(value)) goToPage(value); else setPageInput(String(page)) }
-  async function retry() { setRetrying(true); try { await apiRequest(`/api/documents/${report.id}/retry`, { method: 'POST' }); await loadStatus(); setPollKey((value) => value + 1) } catch (reason) { setError((reason as Error).message) } finally { setRetrying(false) } }
-  return <div className="document-detail">
-    <header className="document-detail-header"><button className="back-button" onClick={onBack}>‹ Back to documents</button><div className="document-title-row"><div><div className="section-label">{report.company.name.toUpperCase()} · {report.fiscal_year}</div><h1>{report.filename}</h1><p>Ingestion attempt {status?.attempt ?? '—'} · <StatusBadge status={status?.status ?? report.status} /></p></div>{status?.status === 'failed' && <button className="button primary" onClick={() => void retry()} disabled={retrying}>{retrying ? 'Queuing…' : 'Retry ingestion'}</button>}</div>
-      <div className="tabs" role="tablist"><button role="tab" aria-selected={tab === 'status'} onClick={() => setTab('status')}>Status</button><button role="tab" aria-selected={tab === 'content'} onClick={() => setTab('content')} disabled={!contentAvailable}>Content</button></div>
-    </header>
-    {error && <p className="error panel-error" role="alert">{error}</p>}
-    {tab === 'status' ? <section className="status-panel"><ol className="pipeline">{status?.stages.map((stage) => <li key={stage.name} className={`pipeline-stage ${stage.status}`}><span className="stage-icon">{stage.status === 'complete' ? <Check size={16} /> : stage.status === 'failed' ? <CircleAlert size={16} /> : stage.status === 'processing' ? <LoaderCircle className="spin" size={16} /> : <Clock3 size={16} />}</span><div><strong>{stage.name[0].toUpperCase() + stage.name.slice(1)}</strong><small>{stage.completed_items !== null ? `${stage.completed_items} of ${stage.total_items} items` : stage.started_at ? `Started ${formatDate(stage.started_at)}` : 'Waiting'}</small>{stage.error && <p className="error">{stage.error}</p>}</div></li>) ?? <li className="empty">Loading pipeline…</li>}</ol>{status?.error && <div className="pipeline-error"><CircleAlert size={18} /><div><strong>Ingestion failed</strong><p>{status.error}</p></div></div>}</section> : <section className="content-split">
-      <article className="content-pane"><header><strong>Extracted Markdown</strong><span>Page {page} of {pageCount}</span></header><div className="markdown-view">{contentLoading ? <div className="pane-loading" role="status">Loading page…</div> : <ReactMarkdown rehypePlugins={[rehypeRaw, rehypeSanitize]} components={markdownComponents}>{cleanTableWhitespace(markdown)}</ReactMarkdown>}</div><footer className="page-controls"><button className="icon-button" aria-label="Previous page" title="Previous page" disabled={page <= 1} onClick={() => goToPage(page - 1)}><ChevronLeft size={18} /></button><label><span className="sr-only">Page number</span><input type="number" min="1" max={pageCount} value={pageInput} onChange={(event) => setPageInput(event.target.value)} onBlur={applyPageInput} onKeyDown={(event) => { if (event.key === 'Enter') applyPageInput() }} /></label><span>of {pageCount}</span><button className="icon-button" aria-label="Next page" title="Next page" disabled={page >= pageCount} onClick={() => goToPage(page + 1)}><ChevronRight size={18} /></button></footer></article>
-      <aside className="chunks-pane"><header><strong>Page chunks</strong><span>{chunks.length} on page {page}</span></header><div className="chunk-list">{chunks.length ? chunks.map((chunk) => <article className="chunk" key={chunk.id}><dl className="chunk-metadata"><div><dt>Chunk</dt><dd>#{chunk.sequence + 1}</dd></div><div><dt>Page</dt><dd>{chunk.page_number}</dd></div><div><dt>Type</dt><dd>{chunk.chunk_type}</dd></div><div><dt>Tokens</dt><dd>{chunk.token_count}</dd></div><div className="chunk-id"><dt>ID</dt><dd>{chunk.id}</dd></div><div className="chunk-heading"><dt>Heading path</dt><dd>{chunk.heading_path.join(' › ') || 'Document'}</dd></div></dl>{chunk.overlap_text && <div className="overlap"><span>Previous 50-token context</span>{chunk.overlap_text}</div>}<pre>{chunk.content}</pre></article>) : <div className="pane-loading">{status?.stages.some(({ name, status: stageStatus }) => name === 'chunk' && stageStatus === 'complete') ? 'No chunks on this page.' : 'Chunks will appear when chunking reaches this page.'}</div>}</div></aside>
-    </section>}
-  </div>
-}
 
 function useDialog(onClose: () => void, busy: boolean) {
   const ref = useRef<HTMLDialogElement>(null)

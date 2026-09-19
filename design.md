@@ -84,6 +84,14 @@ through the API; never use local browser storage as the system of record.
   the bottom. The right pane shows only chunks assigned to that page, including
   chunk ID, sequence, page, type, token count, heading path, overlap, and content.
   Below 760px the panes stack and scroll independently.
+- The document detail tabs are Status, Content, and Search, with keyboard arrow,
+  Home, and End navigation. Search has a top form for Query, Chunks (K, default
+  10), and Token budget (default 10,000). It searches the current document across
+  all pages once ingestion completes.
+- Search displays only the latest submitted query's ranked matches, reusing the
+  Content chunk metadata and content presentation. Show result count, query, and
+  token usage; explain when whole chunks are excluded by the budget. Include
+  initial, not-ready, loading, empty, and retry states. Stack controls on mobile.
 - Upload uses the standard focused dialog. Company, fiscal year ending, and one
   PDF up to 50 MB are required. Deletion names the report and explains that all
   derived ingestion data is removed.

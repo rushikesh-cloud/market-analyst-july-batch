@@ -193,3 +193,35 @@ Verify progress in the document detail page or with
 through `parse`, `chunk`, `embed`, and `index` to `complete`. If ingestion reaches
 `failed`, inspect the reported error and use the detail page's retry action after
 addressing the cause.
+
+### Search document chunks
+
+The document detail **Search** tab combines pgvector cosine similarity with
+PostgreSQL English full-text search over chunk content and headings. The query is
+embedded using the document's stored embedding deployment. Equal-weight reciprocal
+rank fusion (`1 / (60 + rank)` per method) combines both candidate lists with stable
+sequence tie-breaking. Search requires completed ingestion and compatible embeddings.
+
+`POST /api/documents/{document_id}/search` accepts `query` (1–2,000 characters),
+`k` (1–100, default 10), and `max_tokens` (1–100,000, default 10,000). Each method
+retrieves `max(50, 5 * k)` candidates within that document. Results contain whole
+chunks in fused rank order; chunks exceeding the remaining budget are skipped.
+Token counts include headings and overlap, as counted during ingestion. A small
+budget or document can return fewer than K chunks. The response includes total
+returned tokens and a `budget_limited` flag. Semantic retrieval returns the nearest
+chunks even when no literal words match; rank scores are not confidence percentages.
+
+Migration `004_chunk_full_text_search.sql` adds a GIN full-text index for existing
+and future chunks. Migration `005_legacy_chunk_embedding_vectors.sql` converts
+legacy JSON/JSONB embeddings to pgvector without re-embedding. Apply migrations with `npm run migrate` (also applied on API startup).
+
+Search verification:
+
+```bash
+uv --directory backend run python -m unittest discover -s tests
+RUN_SEARCH_POSTGRES_TESTS=1 uv --directory backend run --env-file ../.env python -m unittest tests.test_document_search -v
+```
+
+The PostgreSQL search tests create their own schema inside a rolled-back transaction
+and stub only the query embedding provider. The configured database role needs
+permission to create schemas; pgvector must already be installed.

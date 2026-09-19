@@ -66,7 +66,7 @@ class PostgresSearchTests(unittest.TestCase):
         self.schema = 'search_test_' + uuid4().hex
         self.connection.execute(text(f'CREATE SCHEMA {self.schema}'))
         self.connection.execute(text(f'SET LOCAL search_path TO {self.schema}, public'))
-        companies.Base.metadata.create_all(self.connection)
+        companies.Base.metadata.create_all(self.connection, checkfirst=False)
         migration = Path(__file__).resolve().parents[1] / 'migrations/004_chunk_full_text_search.sql'
         self.connection.execute(text(migration.read_text()))
         self.embedding = [1.0] + [0.0] * (documents.EMBEDDING_DIMENSIONS - 1)
@@ -154,6 +154,15 @@ class PostgresSearchTests(unittest.TestCase):
         self.embedding = [1.0]
         response = self.search_request()
         self.assertEqual(response.status_code, 503)
+
+    def test_migration_preserves_legacy_json_embeddings(self):
+        self.connection.execute(text('ALTER TABLE document_chunks ALTER COLUMN embedding TYPE json USING embedding::text::json'))
+        self.connection.execute(text("UPDATE document_chunks SET embedding = 'null'::json WHERE id = 'foreign'"))
+        migration = Path(__file__).resolve().parents[1] / 'migrations/005_legacy_chunk_embedding_vectors.sql'
+        self.connection.execute(text(migration.read_text().replace('vector(1536)', f'vector({documents.EMBEDDING_DIMENSIONS})')))
+        self.assertEqual(self.connection.execute(text("SELECT pg_typeof(embedding)::text FROM document_chunks LIMIT 1")).scalar(), 'vector')
+        self.assertIsNone(self.connection.execute(text("SELECT embedding FROM document_chunks WHERE id = 'foreign'")).scalar())
+        self.assertEqual(self.search_request().status_code, 200)
 
     def test_stored_embedding_metadata_required(self):
         self.connection.execute(text("UPDATE documents SET embedding_deployment = NULL WHERE id = 'report'"))

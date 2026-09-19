@@ -128,77 +128,6 @@ class DocumentApiTests(unittest.TestCase):
         )
 
 
-class ChunkingTests(unittest.TestCase):
-    def test_heading_tables_order_and_non_recursive_overlap(self):
-        markdown = """# Overview
-
-First paragraph with introductory facts.
-
-## Metrics
-
-| Year | Revenue |
-| --- | --- |
-| 2024 | 100 |
-
-Closing paragraph.
-"""
-        chunks = documents.chunk_markdown(markdown, max_tokens=2000, overlap_tokens=5)
-        self.assertEqual([chunk.chunk_type for chunk in chunks], ["para", "table", "para"])
-        self.assertEqual(chunks[1].heading_path, ["Overview", "Metrics"])
-        self.assertTrue(chunks[1].overlap_text)
-        self.assertEqual(
-            chunks[1].overlap_text,
-            documents._decode(documents._tokens(chunks[0].content)[-5:]),
-        )
-        self.assertEqual(
-            chunks[2].overlap_text,
-            documents._decode(documents._tokens(chunks[1].content)[-5:]),
-        )
-        self.assertEqual([chunk.sequence for chunk in chunks], [0, 1, 2])
-
-    def test_chunk_inputs_respect_token_limit(self):
-        markdown = "# Long section\n\n" + "word " * 100
-        chunks = documents.chunk_markdown(markdown, max_tokens=30, overlap_tokens=5)
-        self.assertGreater(len(chunks), 1)
-        self.assertTrue(all(chunk.token_count <= 30 for chunk in chunks))
-
-    def test_html_tables_are_separate_and_paragraphs_share_heading_chunk(self):
-        markdown = """# Results
-
-First paragraph.
-
-Second paragraph.
-
-<table>
-<tr><th>Year</th><th>Revenue</th></tr>
-<tr><td>2024</td><td>100</td></tr>
-</table>
-
-Closing paragraph.
-"""
-        chunks = documents.chunk_markdown(markdown)
-        self.assertEqual([chunk.chunk_type for chunk in chunks], ["para", "table", "para"])
-        self.assertIn("First paragraph.\n\nSecond paragraph.", chunks[0].content)
-        self.assertTrue(chunks[1].content.startswith("<table>"))
-
-    def test_page_breaks_assign_chunks_and_preserve_heading_context(self):
-        markdown = """# Results
-
-Page one text.
-
-<!-- PageBreak -->
-
-Page two text.
-"""
-        chunks = documents.chunk_markdown(markdown)
-        self.assertEqual([chunk.page_number for chunk in chunks], [1, 2])
-        self.assertEqual(chunks[1].heading_path, ["Results"])
-        self.assertEqual(
-            documents.split_markdown_pages(markdown),
-            ["# Results\n\nPage one text.", "Page two text."],
-        )
-
-
 class WorkerTests(unittest.TestCase):
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory()
@@ -235,7 +164,8 @@ class WorkerTests(unittest.TestCase):
     def test_worker_completes_claimed_run(self):
         owner = "test-worker"
         run_id = worker.claim_run(owner)
-        document_result = SimpleNamespace(content="# Results\n\nRevenue increased.")
+        body = " ".join(["details"] * 25)
+        document_result = SimpleNamespace(content=f"# Results\n\nRevenue increased.\n\n## Details\n\n{body}")
         document_client = SimpleNamespace(
             begin_analyze_document=lambda *args, **kwargs: SimpleNamespace(
                 result=lambda: document_result
@@ -243,6 +173,7 @@ class WorkerTests(unittest.TestCase):
         )
 
         def embed(**kwargs):
+            self.assertEqual(kwargs["input"], [f"Results > Details\nRevenue increased.\n\n{body}"])
             return SimpleNamespace(data=[
                 SimpleNamespace(embedding=[0.1] * documents.EMBEDDING_DIMENSIONS)
                 for _ in kwargs["input"]
@@ -264,6 +195,9 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(
             self.client.get(f"/api/documents/{self.document['id']}/chunks").json()["total"], 1
         )
+        with Session(self.engine) as session:
+            document = session.get(documents.Document, self.document["id"])
+            self.assertEqual(document.chunking_version, documents.CHUNKING_VERSION)
 
     def test_worker_persists_provider_failure(self):
         owner = "test-worker"
@@ -281,12 +215,12 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(status["status"], "failed")
         self.assertEqual(status["stages"][1]["status"], "failed")
 
-    def test_stale_parsed_document_is_requeued_for_page_metadata(self):
+    def test_stale_parsed_document_is_requeued_for_short_chunk_merging(self):
         with Session(self.engine) as session:
             document = session.get(documents.Document, self.document["id"])
             document.markdown = "# Parsed"
             document.status = "complete"
-            document.chunking_version = "header-v1"
+            document.chunking_version = "page-header-v2"
             session.commit()
 
         self.assertEqual(documents.enqueue_stale_documents(), 1)

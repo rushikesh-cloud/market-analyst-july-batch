@@ -142,3 +142,11 @@ docker run --rm -p 8000:8000 \
 Run a second container from the same image and volume with the command
 `/app/.venv/bin/python -m app.worker`. Workers claim PostgreSQL jobs using row
 locks and renewable leases, so queued work survives restarts.
+
+Chunks with fewer than 20 content tokens (excluding headings and overlap) merge
+into the next chunk when the combined embedding input fits the token limit.
+The merged chunk keeps the next chunk's page, heading, and type metadata. Overlap
+is rebuilt from the preceding retained chunk's content. A final short chunk, or
+one whose merge would exceed the limit, remains separate. Chunking version
+`page-header-v3` lets the existing stale-document queue rebuild older parsed
+documents and their embeddings.

@@ -14,8 +14,14 @@ Then start the React client and FastAPI server together:
 npm run dev
 ```
 
-On Windows, you can also launch both services using the scripts in the repository
-root. In Command Prompt:
+You can also launch both services using the scripts in the repository root.
+In Bash (Linux, macOS, or WSL):
+
+```bash
+./start-dev.sh
+```
+
+On Windows, in Command Prompt:
 
 ```cmd
 start-dev.cmd
@@ -27,7 +33,7 @@ Or in PowerShell:
 .\start-dev.ps1
 ```
 
-Both scripts run from the repository root even when invoked from another directory.
+All three scripts run from the repository root even when invoked from another directory.
 They require the same dependency installation above and Node.js/npm and uv on your
 PATH. The backend loads the root `.env` through uv. Press Ctrl+C to stop both services.
 If PowerShell blocks script execution, use `.\start-dev.cmd` from PowerShell.

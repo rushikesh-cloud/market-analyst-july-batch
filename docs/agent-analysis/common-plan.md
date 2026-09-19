@@ -1,6 +1,6 @@
 # Common foundation implementation plan
 
-Status: planned. Complete C01–C10 before starting an agent track. No fundamental, Yahoo, or Tavily business logic belongs in these tasks.
+Progress: [task status tracker](status.md#common-foundation). Complete C01–C10 before starting an agent track. No fundamental, Yahoo, or Tavily business logic belongs in these tasks.
 
 Read [execution and validation conventions](README.md) and [the master plan](../../plan.md). Agent tracks inherit the interfaces below and do not reimplement them.
 
@@ -16,7 +16,7 @@ Read [execution and validation conventions](README.md) and [the master plan](../
 
 ## C01 — Typed contracts, fixtures, and registry
 
-**Status:** pending. **Depends on:** none.
+**Status:** [See tracker](status.md#common-foundation). **Depends on:** none.
 
 **Implementation**
 
@@ -38,7 +38,7 @@ Read [execution and validation conventions](README.md) and [the master plan](../
 
 ## C02 — Deterministic scoring and evidence coverage
 
-**Status:** pending. **Depends on:** C01.
+**Status:** [See tracker](status.md#common-foundation). **Depends on:** C01.
 
 **Implementation**
 
@@ -62,7 +62,7 @@ Read [execution and validation conventions](README.md) and [the master plan](../
 
 ## C03 — LangChain models, configuration, and provider boundaries
 
-**Status:** pending. **Depends on:** C01.
+**Status:** [See tracker](status.md#common-foundation). **Depends on:** C01.
 
 **Implementation**
 
@@ -88,7 +88,7 @@ Read [execution and validation conventions](README.md) and [the master plan](../
 
 ## C04 — NSE ticker normalization and compatibility
 
-**Status:** pending. **Depends on:** C01.
+**Status:** [See tracker](status.md#common-foundation). **Depends on:** C01.
 
 **Implementation**
 
@@ -111,7 +111,7 @@ Read [execution and validation conventions](README.md) and [the master plan](../
 
 ## C05 — Analysis persistence and migrations
 
-**Status:** pending. **Depends on:** C01.
+**Status:** [See tracker](status.md#common-foundation). **Depends on:** C01.
 
 **Implementation**
 
@@ -134,7 +134,7 @@ Read [execution and validation conventions](README.md) and [the master plan](../
 
 ## C06 — Evidence ledger and artifact storage
 
-**Status:** pending. **Depends on:** C01, C05.
+**Status:** [See tracker](status.md#common-foundation). **Depends on:** C01, C05.
 
 **Implementation**
 
@@ -157,7 +157,7 @@ Read [execution and validation conventions](README.md) and [the master plan](../
 
 ## C07 — Analysis API and history
 
-**Status:** pending. **Depends on:** C04–C06.
+**Status:** [See tracker](status.md#common-foundation). **Depends on:** C04–C06.
 
 **Implementation**
 
@@ -180,7 +180,7 @@ Read [execution and validation conventions](README.md) and [the master plan](../
 
 ## C08 — Durable worker, execution limits, and recovery
 
-**Status:** pending. **Depends on:** C02–C03, C05–C07.
+**Status:** [See tracker](status.md#common-foundation). **Depends on:** C02–C03, C05–C07.
 
 **Implementation**
 
@@ -207,7 +207,7 @@ Read [execution and validation conventions](README.md) and [the master plan](../
 
 ## C09 — Shared analysis UI and browser-test harness
 
-**Status:** pending. **Depends on:** C01, C04, C07.
+**Status:** [See tracker](status.md#common-foundation). **Depends on:** C01, C04, C07.
 
 **Implementation**
 
@@ -231,7 +231,7 @@ Read [execution and validation conventions](README.md) and [the master plan](../
 
 ## C10 — Foundation acceptance and handoff
 
-**Status:** pending. **Depends on:** C01–C09.
+**Status:** [See tracker](status.md#common-foundation). **Depends on:** C01–C09.
 
 **Implementation**
 

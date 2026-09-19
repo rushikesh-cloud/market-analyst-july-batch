@@ -1,6 +1,6 @@
 # Technical agent implementation plan
 
-Status: planned. **Entry prerequisite: common/C10 is complete.** Reuse common ticker validation, Azure vision configuration, execution, scoring, persistence, artifacts, and UI shell.
+Progress: [task status tracker](status.md#technical-agent). **Entry prerequisite: common/C10 is complete.** Reuse common ticker validation, Azure vision configuration, execution, scoring, persistence, artifacts, and UI shell.
 
 Read [task execution and validation rules](README.md) and [the master plan](../../plan.md). This track uses Yahoo Finance daily OHLCV, computes **MACD and RSI only**, creates a candlestick/volume/indicator image, and asks a multimodal agent to assess a **2–8 week** outlook. No intraday trading or additional indicators are included.
 
@@ -15,7 +15,7 @@ Read [task execution and validation rules](README.md) and [the master plan](../.
 
 ## T01 — Yahoo Finance adapter and daily data snapshot
 
-**Status:** pending. **Depends on:** common/C10.
+**Status:** [See tracker](status.md#technical-agent). **Depends on:** common/C10.
 
 **Implementation**
 
@@ -38,7 +38,7 @@ Read [task execution and validation rules](README.md) and [the master plan](../.
 
 ## T02 — Trading dates and data-quality rules
 
-**Status:** pending. **Depends on:** T01.
+**Status:** [See tracker](status.md#technical-agent). **Depends on:** T01.
 
 **Implementation**
 
@@ -63,7 +63,7 @@ Read [task execution and validation rules](README.md) and [the master plan](../.
 
 ## T03 — MACD and Wilder RSI calculations
 
-**Status:** pending. **Depends on:** T02.
+**Status:** [See tracker](status.md#technical-agent). **Depends on:** T02.
 
 **Implementation**
 
@@ -87,7 +87,7 @@ Read [task execution and validation rules](README.md) and [the master plan](../.
 
 ## T04 — Four-panel chart image and numerical references
 
-**Status:** pending. **Depends on:** T03.
+**Status:** [See tracker](status.md#technical-agent). **Depends on:** T03.
 
 **Implementation**
 
@@ -110,7 +110,7 @@ Read [task execution and validation rules](README.md) and [the master plan](../.
 
 ## T05 — Vision-based technical assessment and scoring
 
-**Status:** pending. **Depends on:** T01–T04.
+**Status:** [See tracker](status.md#technical-agent). **Depends on:** T01–T04.
 
 **Implementation**
 
@@ -137,7 +137,7 @@ Read [task execution and validation rules](README.md) and [the master plan](../.
 
 ## T06 — Technical result and chart view
 
-**Status:** pending. **Depends on:** T05; common UI available.
+**Status:** [See tracker](status.md#technical-agent). **Depends on:** T05; common UI available.
 
 **Implementation**
 
@@ -158,7 +158,7 @@ Read [task execution and validation rules](README.md) and [the master plan](../.
 
 ## T07 — Technical acceptance suite and handoff
 
-**Status:** pending. **Depends on:** T01–T06.
+**Status:** [See tracker](status.md#technical-agent). **Depends on:** T01–T06.
 
 **Implementation**
 

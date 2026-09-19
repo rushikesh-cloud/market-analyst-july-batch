@@ -1,6 +1,6 @@
 # News agent implementation plan
 
-Status: planned. **Entry prerequisite: common/C10 is complete.** Reuse common configuration, Azure models, ticker context, execution limits, evidence ledger, persistence, scoring utilities, and UI shell.
+Progress: [task status tracker](status.md#news-agent). **Entry prerequisite: common/C10 is complete.** Reuse common configuration, Azure models, ticker context, execution limits, evidence ledger, persistence, scoring utilities, and UI shell.
 
 Read [task execution and validation rules](README.md) and [the master plan](../../plan.md). This track retrieves company news through Tavily, analyzes distinct events, and scores their implications over **2–8 weeks**. It does not download financial reports, compute technical indicators, or crawl arbitrary sites.
 
@@ -14,7 +14,7 @@ Read [task execution and validation rules](README.md) and [the master plan](../.
 
 ## N01 — Tavily configuration and bounded provider adapter
 
-**Status:** pending. **Depends on:** common/C10.
+**Status:** [See tracker](status.md#news-agent). **Depends on:** common/C10.
 
 **Implementation**
 
@@ -38,7 +38,7 @@ Read [task execution and validation rules](README.md) and [the master plan](../.
 
 ## N02 — Article identity, date filtering, and evidence storage
 
-**Status:** pending. **Depends on:** N01.
+**Status:** [See tracker](status.md#news-agent). **Depends on:** N01.
 
 **Implementation**
 
@@ -62,7 +62,7 @@ Read [task execution and validation rules](README.md) and [the master plan](../.
 
 ## N03 — Duplicate articles and distinct event grouping
 
-**Status:** pending. **Depends on:** N02.
+**Status:** [See tracker](status.md#news-agent). **Depends on:** N02.
 
 **Implementation**
 
@@ -86,7 +86,7 @@ Read [task execution and validation rules](README.md) and [the master plan](../.
 
 ## N04 — Agentic news research and event assessments
 
-**Status:** pending. **Depends on:** N01–N03.
+**Status:** [See tracker](status.md#news-agent). **Depends on:** N01–N03.
 
 **Implementation**
 
@@ -112,7 +112,7 @@ Read [task execution and validation rules](README.md) and [the master plan](../.
 
 ## N05 — Event-weighted scoring, coverage, and confidence
 
-**Status:** pending. **Depends on:** N03–N04.
+**Status:** [See tracker](status.md#news-agent). **Depends on:** N03–N04.
 
 **Implementation**
 
@@ -140,7 +140,7 @@ Read [task execution and validation rules](README.md) and [the master plan](../.
 
 ## N06 — News result and event evidence view
 
-**Status:** pending. **Depends on:** N04–N05; common UI available.
+**Status:** [See tracker](status.md#news-agent). **Depends on:** N04–N05; common UI available.
 
 **Implementation**
 
@@ -162,7 +162,7 @@ Read [task execution and validation rules](README.md) and [the master plan](../.
 
 ## N07 — News acceptance suite and handoff
 
-**Status:** pending. **Depends on:** N01–N06.
+**Status:** [See tracker](status.md#news-agent). **Depends on:** N01–N06.
 
 **Implementation**
 

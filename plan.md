@@ -7,7 +7,7 @@ Detailed implementation and validation tasks are in the [task pack](docs/agent-a
 - [Technical agent — T01–T07](docs/agent-analysis/technical-plan.md)
 - [News agent — N01–N07](docs/agent-analysis/news-plan.md)
 
-Complete the common foundation first. Each agent track then assumes those shared interfaces and services are available. The task pack also includes cross-agent acceptance task I01. All implementation tasks are currently pending.
+Complete the common foundation first. Each agent track then assumes those shared interfaces and services are available. The task pack also includes cross-agent acceptance task I01. Current task statuses, validation notes, and completion counts are maintained in the [task status tracker](docs/agent-analysis/status.md).
 
 ## 1. Outcome and architecture
 

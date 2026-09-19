@@ -1,6 +1,6 @@
 # Fundamental agent implementation plan
 
-Status: planned. **Entry prerequisite: common/C10 is complete.** Use its model factory, contracts, scoring, evidence ledger, worker, API, and UI shell. Do not rebuild common infrastructure.
+Progress: [task status tracker](status.md#fundamental-agent). **Entry prerequisite: common/C10 is complete.** Use its model factory, contracts, scoring, evidence ledger, worker, API, and UI shell. Do not rebuild common infrastructure.
 
 Read [task execution and validation rules](README.md) and [the master plan](../../plan.md). This track assesses financial health from the **latest eligible annual report only**, including comparative figures printed in that report. It does not fetch market prices, news, valuation multiples, or older reports.
 
@@ -15,7 +15,7 @@ Read [task execution and validation rules](README.md) and [the master plan](../.
 
 ## F01 — Select and freeze the report context
 
-**Status:** pending. **Depends on:** common/C10.
+**Status:** [See tracker](status.md#fundamental-agent). **Depends on:** common/C10.
 
 **Implementation**
 
@@ -38,7 +38,7 @@ Read [task execution and validation rules](README.md) and [the master plan](../.
 
 ## F02 — Reusable hybrid search and bounded evidence tools
 
-**Status:** pending. **Depends on:** F01.
+**Status:** [See tracker](status.md#fundamental-agent). **Depends on:** F01.
 
 **Implementation**
 
@@ -62,7 +62,7 @@ Read [task execution and validation rules](README.md) and [the master plan](../.
 
 ## F03 — Financial facts, units, and calculation helpers
 
-**Status:** pending. **Depends on:** F02.
+**Status:** [See tracker](status.md#fundamental-agent). **Depends on:** F02.
 
 **Implementation**
 
@@ -88,7 +88,7 @@ Read [task execution and validation rules](README.md) and [the master plan](../.
 
 ## F04 — Sector profiles and scoring rubrics
 
-**Status:** pending. **Depends on:** F03.
+**Status:** [See tracker](status.md#fundamental-agent). **Depends on:** F03.
 
 **Implementation**
 
@@ -114,7 +114,7 @@ Read [task execution and validation rules](README.md) and [the master plan](../.
 
 ## F05 — Iterative fundamental research agent
 
-**Status:** pending. **Depends on:** F01–F04.
+**Status:** [See tracker](status.md#fundamental-agent). **Depends on:** F01–F04.
 
 **Implementation**
 
@@ -138,7 +138,7 @@ Read [task execution and validation rules](README.md) and [the master plan](../.
 
 ## F06 — Fundamental result view
 
-**Status:** pending. **Depends on:** F05; common UI available.
+**Status:** [See tracker](status.md#fundamental-agent). **Depends on:** F05; common UI available.
 
 **Implementation**
 
@@ -159,7 +159,7 @@ Read [task execution and validation rules](README.md) and [the master plan](../.
 
 ## F07 — Fundamental acceptance suite and handoff
 
-**Status:** pending. **Depends on:** F01–F06.
+**Status:** [See tracker](status.md#fundamental-agent). **Depends on:** F01–F06.
 
 **Implementation**
 

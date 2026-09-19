@@ -1,6 +1,6 @@
 # Agent implementation task pack
 
-Status: planned. These documents specify work and tests; they do not claim that any implementation or validation has been completed.
+Track implementation progress in the **[task status tracker](status.md)**. These documents specify work and tests; completion is recorded only after each task passes its gate.
 
 ## Execution order
 
@@ -10,13 +10,13 @@ Status: planned. These documents specify work and tests; they do not claim that 
 
 The product scope and defaults come from [the master plan](../../plan.md). These detailed plans define implementation and validation details. In particular, scores use normalized weighted averages, news coverage uses retained event weights rather than absent news categories, and existing ambiguous tickers are not silently migrated.
 
-| Workstream | Task IDs | Completion gate | Status |
+| Workstream | Task IDs | Completion gate | Progress |
 |---|---|---|---|
-| Common foundation | C01–C10 | Shared runtime, API, contracts, and fixture-backed UI pass C10 | Pending |
-| Fundamental | F01–F07 | Latest-report, sector-aware analysis passes F07 | Pending |
-| Technical | T01–T07 | Yahoo data, chart, and vision analysis pass T07 | Pending |
-| News | N01–N07 | Tavily evidence and event scoring pass N07 | Pending |
-| Integration | I01 | All three real adapters pass together | Pending |
+| Common foundation | C01–C10 | Shared runtime, API, contracts, and fixture-backed UI pass C10 | [Tracker](status.md#common-foundation) |
+| Fundamental | F01–F07 | Latest-report, sector-aware analysis passes F07 | [Tracker](status.md#fundamental-agent) |
+| Technical | T01–T07 | Yahoo data, chart, and vision analysis pass T07 | [Tracker](status.md#technical-agent) |
+| News | N01–N07 | Tavily evidence and event scoring pass N07 | [Tracker](status.md#news-agent) |
+| Integration | I01 | All three real adapters pass together | [Tracker](status.md#cross-agent-integration) |
 
 ### Mapping from the master plan
 
@@ -36,11 +36,11 @@ Detailed IDs are qualified by their document, for example `technical/T03`, to di
 
 ## Rules for every implementation session
 
-- Read repository instructions, the master plan, this index, and the selected task's plan. Read `design.md` before changing UI.
+- Read repository instructions, the master plan, this index, the [task status tracker](status.md), and the selected task's plan. Read `design.md` before changing UI.
 - Start one task whose dependencies are complete. Keep modules focused; use `backend/app/analysis/` for shared infrastructure and its `fundamental/`, `technical/`, and `news/` subpackages for agent-specific code.
 - Use the existing resource layer, migration ordering, API patterns, and component/CSS conventions. Do not create competing provider clients, job queues, or result formats in an agent track.
 - Implement and run the task's named tests. Never substitute live model output for deterministic calculation or persistence tests.
-- Update task status and append the handoff record below to the relevant plan. Commit that task's intended changes after validation, preserving unrelated work. Do not build Docker.
+- Update the task row and summary in [the status tracker](status.md) when starting, blocking, or completing work, and append the handoff record below to the relevant plan. Commit that task's intended changes after validation, preserving unrelated work. Do not build Docker.
 - If an assumption proves false, record the evidence and amend the affected contract and tests before dependent work begins.
 
 ### Handoff record template
@@ -90,7 +90,7 @@ C09 introduces the frontend browser-test command; C10 documents the isolated Pos
 
 ## I01 — Cross-agent application acceptance
 
-**Status:** pending. **Depends on:** C10, fundamental/F07, technical/T07, news/N07.
+**Status:** [See tracker](status.md#cross-agent-integration). **Depends on:** C10, fundamental/F07, technical/T07, news/N07.
 
 **Deliverable:** verify all three production adapters in the same application, finalize operating instructions, and record a release-readiness report. This task adds no combined score or scheduler.
 
